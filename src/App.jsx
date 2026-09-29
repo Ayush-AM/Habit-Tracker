@@ -11,6 +11,7 @@ import { DailyBarChart } from './components/Dashboard/DailyBarChart';
 import { CategoryProgress } from './components/Dashboard/CategoryProgress';
 import { TableToolbar } from './components/HabitGrid/TableToolbar';
 import { HabitTable } from './components/HabitGrid/HabitTable';
+import { MobileDailyView } from './components/DailyTracker/MobileDailyView';
 import { WinterArcLog } from './components/DailyTracker/WinterArcLog';
 import { QuoteCard } from './components/DailyTracker/QuoteCard';
 import { HabitModal } from './components/Modals/HabitModal';
@@ -50,6 +51,9 @@ export function App() {
   const { soundEnabled, toggleSound, playCheckSound } = useAudio();
   const { theme, setTheme, currentThemeObj, themes } = useTheme();
 
+  // View Mode: 'grid' (Matrix Spreadsheet) or 'daily' (Mobile Daily Focus)
+  const [viewMode, setViewMode] = useState('grid');
+
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [habitToEdit, setHabitToEdit] = useState(null);
@@ -70,7 +74,6 @@ export function App() {
     playCheckSound(isNowChecked);
 
     if (isNowChecked) {
-      // Check if all habits for this day are completed
       let totalCompletedOnDay = 0;
       habits.forEach(h => {
         const isHChecked = (h.id === habitId) ? true : !!(checkData[h.id] && checkData[h.id][day]);
@@ -79,7 +82,7 @@ export function App() {
 
       if (totalCompletedOnDay === habits.length && habits.length > 0) {
         triggerCelebration();
-        addToast(`🔥 100% PERFECT DAY ${day}! Winter Arc Discipline!`);
+        addToast(`100% Perfect Day ${day}! Winter Arc discipline locked in.`);
       }
     }
   };
@@ -89,7 +92,7 @@ export function App() {
     if (success) {
       triggerCelebration();
       playCheckSound(true);
-      addToast(`Crushed all ${habits.length} habits for today! 🚀`);
+      addToast(`Completed all ${habits.length} habits for today!`);
     } else {
       addToast("Switch to the current month to mark today's habits.");
     }
@@ -132,9 +135,9 @@ export function App() {
   };
 
   const handleRestoreDefaults = () => {
-    if (window.confirm("Reset habits back to the 11 default Winter Arc habits from your handwritten notebook?")) {
+    if (window.confirm("Reset habits back to the 12 default Winter Arc habits from your handwritten notebook?")) {
       restoreDefaults();
-      addToast("Winter Arc habits restored! ❄️");
+      addToast("Winter Arc habits restored.");
     }
   };
 
@@ -161,7 +164,7 @@ export function App() {
 
       {/* Main Content */}
       <main className="main-content">
-        {/* Top Analytics Dashboard (Image 2 Reference) */}
+        {/* Top Analytics Dashboard */}
         <section className="dashboard-section">
           <SummaryCard
             completed={stats.totalCompleted}
@@ -181,33 +184,49 @@ export function App() {
           <CategoryProgress categoryStats={stats.categoryStats} />
         </section>
 
-        {/* Search & Filter Toolbar */}
+        {/* Search & Filter Toolbar with View Mode Toggle */}
         <TableToolbar
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           categoryFilter={categoryFilter}
           setCategoryFilter={setCategoryFilter}
+          viewMode={viewMode}
+          setViewMode={setViewMode}
           onQuickFillToday={handleQuickFill}
           onResetMonth={handleResetMonth}
         />
 
-        {/* Spreadsheet Matrix Table (Images 1 & 3 Reference) */}
-        <HabitTable
-          habits={habits}
-          checkData={checkData}
-          daysInMonth={daysInMonth}
-          todayDayNumber={todayDayNumber}
-          selectedYear={selectedYear}
-          selectedMonth={selectedMonth}
-          stats={stats}
-          searchQuery={searchQuery}
-          categoryFilter={categoryFilter}
-          onToggleDay={handleToggleDay}
-          onUpdateGoal={updateHabitGoal}
-          onEditHabit={handleOpenEditModal}
-          onDeleteHabit={handleDeleteHabit}
-          onOpenAddModal={handleOpenAddModal}
-        />
+        {/* View Mode Switching: Spreadsheet Matrix or Mobile Daily Focus */}
+        {viewMode === 'daily' ? (
+          <MobileDailyView
+            habits={habits}
+            checkData={checkData}
+            todayDayNumber={todayDayNumber}
+            selectedMonth={selectedMonth}
+            selectedYear={selectedYear}
+            stats={stats}
+            onToggleDay={handleToggleDay}
+            onOpenAddModal={handleOpenAddModal}
+            onQuickFillToday={handleQuickFill}
+          />
+        ) : (
+          <HabitTable
+            habits={habits}
+            checkData={checkData}
+            daysInMonth={daysInMonth}
+            todayDayNumber={todayDayNumber}
+            selectedYear={selectedYear}
+            selectedMonth={selectedMonth}
+            stats={stats}
+            searchQuery={searchQuery}
+            categoryFilter={categoryFilter}
+            onToggleDay={handleToggleDay}
+            onUpdateGoal={updateHabitGoal}
+            onEditHabit={handleOpenEditModal}
+            onDeleteHabit={handleDeleteHabit}
+            onOpenAddModal={handleOpenAddModal}
+          />
+        )}
 
         {/* Daily Reflection & Winter Arc Timelog */}
         <section className="bottom-extra-section">
@@ -243,7 +262,7 @@ export function App() {
               type="file"
               accept=".json"
               style={{ display: 'none' }}
-              onChange={(e) => importJson(e.target.files[0], () => addToast("Backup restored! 🎉"))}
+              onChange={(e) => importJson(e.target.files[0], () => addToast("Backup restored successfully."))}
             />
           </label>
         </div>
@@ -259,4 +278,5 @@ export function App() {
     </div>
   );
 }
+
 export default App;

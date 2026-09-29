@@ -1,39 +1,64 @@
 import React from 'react';
-import { Search, Zap, RotateCcw, Filter } from 'lucide-react';
+import { Search, Zap, RotateCcw, Table2, CheckSquare, Layers } from 'lucide-react';
 import { HABIT_CATEGORIES } from '../../types/habit';
+import { HabitIcon } from '../Common/HabitIcon';
 
 export function TableToolbar({
   searchQuery,
   setSearchQuery,
   categoryFilter,
   setCategoryFilter,
+  viewMode = 'grid',
+  setViewMode,
   onQuickFillToday,
   onResetMonth
 }) {
-  const categories = [{ name: "ALL", icon: "🌐" }, ...HABIT_CATEGORIES];
+  const categories = [{ name: "ALL", icon: "Layers" }, ...HABIT_CATEGORIES];
 
   return (
     <div className="table-toolbar">
       <div className="toolbar-left">
+        {/* View Mode Toggle: Grid vs Daily Checklist */}
+        {setViewMode && (
+          <div className="view-mode-toggle">
+            <button
+              className={`view-toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
+              onClick={() => setViewMode('grid')}
+              title="Spreadsheet 92-Day Matrix"
+            >
+              <Table2 size={14} />
+              <span className="view-btn-label">Matrix Grid</span>
+            </button>
+            <button
+              className={`view-toggle-btn ${viewMode === 'daily' ? 'active' : ''}`}
+              onClick={() => setViewMode('daily')}
+              title="Today's Mobile Checklist"
+            >
+              <CheckSquare size={14} />
+              <span className="view-btn-label">Today's Focus</span>
+            </button>
+          </div>
+        )}
+
         <div className="search-box">
           <Search size={15} className="search-icon" />
           <input
             type="text"
-            placeholder="Search habits or categories..."
+            placeholder="Search habits..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
 
         <div className="category-filter-chips">
-          {categories.slice(0, 6).map(cat => (
+          {categories.slice(0, 7).map(cat => (
             <button
               key={cat.name}
               className={`filter-chip ${categoryFilter === cat.name ? 'active' : ''}`}
               onClick={() => setCategoryFilter(cat.name)}
             >
-              <span>{cat.icon}</span>
-              <span>{cat.name === 'ALL' ? 'All Habits' : cat.name}</span>
+              <HabitIcon name={cat.icon} size={13} />
+              <span>{cat.name === 'ALL' ? 'All' : cat.name}</span>
             </button>
           ))}
         </div>
@@ -55,9 +80,11 @@ export function TableToolbar({
           title="Reset checkmarks for current month"
         >
           <RotateCcw size={14} />
-          <span>Reset Month</span>
+          <span>Reset</span>
         </button>
       </div>
     </div>
   );
 }
+
+export default TableToolbar;

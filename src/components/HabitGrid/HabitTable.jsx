@@ -49,9 +49,9 @@ export function HabitTable({
             {/* Top Row: Habits, Category, Goal, Progress, Week Spans */}
             <tr>
               <th rowSpan={2} className="th-habit-name sticky-col sticky-col-0">HABITS</th>
-              <th rowSpan={2} className="th-category sticky-col sticky-col-1">CATEGORY</th>
-              <th rowSpan={2} className="th-goal sticky-col sticky-col-2">MONTH GOAL</th>
-              <th rowSpan={2} className="th-progress sticky-col sticky-col-3">PROGRESS</th>
+              <th rowSpan={2} className="th-category sticky-col sticky-col-1 col-category">CATEGORY</th>
+              <th rowSpan={2} className="th-goal sticky-col sticky-col-2 col-goal">MONTH GOAL</th>
+              <th rowSpan={2} className="th-progress sticky-col sticky-col-3 col-progress">PROGRESS</th>
 
               {week1Span > 0 && <th colSpan={week1Span} className="th-week-group-1">WEEK 1</th>}
               {week2Span > 0 && <th colSpan={week2Span} className="th-week-group-2">WEEK 2</th>}

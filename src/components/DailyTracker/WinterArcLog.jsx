@@ -28,7 +28,7 @@ export function WinterArcLog({
       ...dailyMetrics,
       notes: updatedNotes
     });
-    if (onNotify) onNotify("Winter Arc focus note saved! 📝");
+    if (onNotify) onNotify("Winter Arc focus note saved successfully.");
   };
 
   const todayStr = new Date().toLocaleDateString('en-US', {

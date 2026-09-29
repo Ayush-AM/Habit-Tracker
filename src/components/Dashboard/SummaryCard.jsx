@@ -1,5 +1,5 @@
 import React from 'react';
-import { Target, CheckCircle2, Flame, Award } from 'lucide-react';
+import { Target, CheckCircle2, Flame, Award, Zap, Compass } from 'lucide-react';
 
 export function SummaryCard({ completed, goal }) {
   const percent = goal > 0 ? Math.min(100, Math.round((completed / goal) * 100)) : 0;
@@ -8,16 +8,21 @@ export function SummaryCard({ completed, goal }) {
   const circumference = 301.59;
   const strokeDashoffset = circumference - (percent / 100) * circumference;
 
-  let badgeText = "❄️ Ready to Start Your Winter Arc";
+  let badgeIcon = <Compass size={13} />;
+  let badgeText = "Ready to Conquer Winter Arc";
   let badgeClass = "badge-neutral";
+
   if (percent >= 80) {
-    badgeText = "🔥 Exceptional! Winter Arc Elite";
+    badgeIcon = <Flame size={13} className="text-amber-500" />;
+    badgeText = "Exceptional • Winter Arc Elite";
     badgeClass = "badge-elite";
   } else if (percent >= 50) {
-    badgeText = "⚡ Strong Momentum! Keep Going";
+    badgeIcon = <Zap size={13} className="text-emerald-500" />;
+    badgeText = "Strong Momentum • Keep Pushing";
     badgeClass = "badge-strong";
   } else if (percent > 0) {
-    badgeText = "🚀 Locked In • Consistency is Key";
+    badgeIcon = <Target size={13} className="text-blue-500" />;
+    badgeText = "Locked In • Consistency Is Key";
     badgeClass = "badge-locked";
   }
 
@@ -70,8 +75,11 @@ export function SummaryCard({ completed, goal }) {
       </div>
 
       <div className={`summary-footer-badge ${badgeClass}`}>
+        {badgeIcon}
         <span>{badgeText}</span>
       </div>
     </div>
   );
 }
+
+export default SummaryCard;

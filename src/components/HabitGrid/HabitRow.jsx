@@ -1,5 +1,6 @@
 import React from 'react';
 import { Flame, Edit3, Trash2 } from 'lucide-react';
+import { HabitIcon } from '../Common/HabitIcon';
 
 export function HabitRow({
   habit,
@@ -23,10 +24,30 @@ export function HabitRow({
       <td className="td-habit-name sticky-col sticky-col-0">
         <div className="habit-title-wrap">
           <div className="habit-name-left">
-            <span className="habit-icon">{habit.icon || '⚡'}</span>
-            <span className="habit-name-text">{habit.name}</span>
+            <span
+              className="habit-icon-pill"
+              style={{
+                color: habit.color || 'var(--accent-primary)',
+                backgroundColor: habit.color ? `${habit.color}18` : 'var(--accent-primary-light)'
+              }}
+              title={habit.name}
+            >
+              <HabitIcon name={habit.icon} size={15} />
+            </span>
+            <div className="habit-name-block">
+              <span className="habit-name-text">{habit.name}</span>
+              <div className="habit-meta-mobile">
+                <span className="mobile-progress-pill">{completedCount}/{goal}</span>
+                {streak > 0 && (
+                  <span className="habit-streak compact-streak" title={`${streak} day streak`}>
+                    <Flame size={11} className="streak-icon" />
+                    <span>{streak}d</span>
+                  </span>
+                )}
+              </div>
+            </div>
             {streak > 0 && (
-              <span className="habit-streak" title={`${streak} day active streak!`}>
+              <span className="habit-streak desktop-streak" title={`${streak} day active streak!`}>
                 <Flame size={12} className="streak-icon" />
                 <span>{streak}</span>
               </span>
@@ -52,15 +73,15 @@ export function HabitRow({
       </td>
 
       {/* Category Badge */}
-      <td className="sticky-col sticky-col-1">
+      <td className="sticky-col sticky-col-1 col-category">
         <span className="category-badge">
-          <span>{habit.icon || '📌'}</span>
+          <HabitIcon name={habit.icon} size={12} />
           <span>{habit.category}</span>
         </span>
       </td>
 
       {/* Monthly Target Goal (Inline Editable) */}
-      <td className="sticky-col sticky-col-2">
+      <td className="sticky-col sticky-col-2 col-goal">
         <input
           type="number"
           className="goal-input"
@@ -73,7 +94,7 @@ export function HabitRow({
       </td>
 
       {/* Progress Bar */}
-      <td className="sticky-col sticky-col-3">
+      <td className="sticky-col sticky-col-3 col-progress">
         <div className="progress-cell-box">
           <span className="progress-fraction">
             {completedCount}/{goal} ({progressPercent}%)

@@ -13,12 +13,41 @@ export function useHabits() {
     return month;
   });
   
+  // Legacy emoji migration map
+  const emojiToProIcon = {
+    '💻': 'Database',
+    '⚡': 'Binary',
+    '🧠': 'Cpu',
+    '🎯': 'Target',
+    '🛡️': 'Shield',
+    '🛡': 'Shield',
+    '📹': 'Video',
+    '💪': 'Dumbbell',
+    '🗣️': 'Languages',
+    '🗣': 'Languages',
+    '🎬': 'Clapperboard',
+    '👟': 'Footprints',
+    '💧': 'Droplets',
+    '🌐': 'GitPullRequest',
+    '💼': 'Briefcase',
+    '🧗': 'Zap',
+    '💤': 'Moon',
+    '✨': 'Sparkles',
+    '📌': 'Target'
+  };
+
   // Habits list
   const [habits, setHabits] = useState(() => {
     const saved = localStorage.getItem('winter_arc_habits_list');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map(h => ({
+            ...h,
+            icon: emojiToProIcon[h.icon] || h.icon || 'Database'
+          }));
+        }
       } catch (e) {
         return [...DEFAULT_WINTER_ARC_HABITS];
       }
@@ -153,7 +182,7 @@ export function useHabits() {
           name: h.category,
           completed: 0,
           goal: 0,
-          icon: h.icon || '📌',
+          icon: h.icon || 'Target',
           color: h.color || '#3b82f6'
         };
       }

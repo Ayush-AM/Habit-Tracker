@@ -11,6 +11,7 @@ import {
   CalendarDays 
 } from 'lucide-react';
 import { MONTH_NAMES } from '../types/habit';
+import { HabitIcon } from './Common/HabitIcon';
 
 export function Header({
   selectedYear,
@@ -146,7 +147,9 @@ export function Header({
                     setShowThemeMenu(false);
                   }}
                 >
-                  <span className="theme-opt-icon">{t.icon}</span>
+                  <span className="theme-opt-icon">
+                    <HabitIcon name={t.icon} size={16} />
+                  </span>
                   <div className="theme-opt-text">
                     <span className="theme-opt-title">{t.name}</span>
                     <span className="theme-opt-desc">{t.desc}</span>

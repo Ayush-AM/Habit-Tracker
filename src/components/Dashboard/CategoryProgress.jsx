@@ -1,5 +1,6 @@
 import React from 'react';
 import { Layers } from 'lucide-react';
+import { HabitIcon } from '../Common/HabitIcon';
 
 export function CategoryProgress({ categoryStats }) {
   return (
@@ -24,7 +25,7 @@ export function CategoryProgress({ categoryStats }) {
             return (
               <div key={cat.name} className="category-progress-item">
                 <div className="cat-name-badge" title={cat.name}>
-                  <span>{cat.icon}</span>
+                  <HabitIcon name={cat.icon} size={13} color={cat.color} />
                   <span className="cat-name-text">{cat.name}</span>
                 </div>
                 <div
@@ -50,3 +51,5 @@ export function CategoryProgress({ categoryStats }) {
     </div>
   );
 }
+
+export default CategoryProgress;
