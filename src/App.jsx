@@ -1,0 +1,262 @@
+import React, { useState, useCallback } from 'react';
+import { useHabits } from './hooks/useHabits';
+import { useAudio } from './hooks/useAudio';
+import { useTheme } from './hooks/useTheme';
+import { triggerCelebration } from './components/Common/Confetti';
+import { ToastContainer } from './components/Common/Toast';
+import { Header } from './components/Header';
+import { SummaryCard } from './components/Dashboard/SummaryCard';
+import { WeeklyDonuts } from './components/Dashboard/WeeklyDonuts';
+import { DailyBarChart } from './components/Dashboard/DailyBarChart';
+import { CategoryProgress } from './components/Dashboard/CategoryProgress';
+import { TableToolbar } from './components/HabitGrid/TableToolbar';
+import { HabitTable } from './components/HabitGrid/HabitTable';
+import { WinterArcLog } from './components/DailyTracker/WinterArcLog';
+import { QuoteCard } from './components/DailyTracker/QuoteCard';
+import { HabitModal } from './components/Modals/HabitModal';
+import { RotateCcw, Download, Upload, ShieldCheck } from 'lucide-react';
+
+export function App() {
+  const {
+    selectedYear,
+    setSelectedYear,
+    selectedMonth,
+    setSelectedMonth,
+    daysInMonth,
+    todayDayNumber,
+    isCurrentMonth,
+    habits,
+    checkData,
+    dailyMetrics,
+    persistDailyMetrics,
+    stats,
+    searchQuery,
+    setSearchQuery,
+    categoryFilter,
+    setCategoryFilter,
+    toggleHabitDay,
+    updateHabitGoal,
+    addHabit,
+    editHabit,
+    deleteHabit,
+    quickFillToday,
+    resetCurrentMonth,
+    restoreDefaults,
+    exportCsv,
+    exportJson,
+    importJson
+  } = useHabits();
+
+  const { soundEnabled, toggleSound, playCheckSound } = useAudio();
+  const { theme, setTheme, currentThemeObj, themes } = useTheme();
+
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [habitToEdit, setHabitToEdit] = useState(null);
+
+  // Toast Notifications
+  const [toasts, setToasts] = useState([]);
+  const addToast = useCallback((message) => {
+    const id = Date.now();
+    setToasts(prev => [...prev, { id, message }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 3200);
+  }, []);
+
+  // Checkbox Click with Sound & Milestone logic
+  const handleToggleDay = (habitId, day) => {
+    const isNowChecked = toggleHabitDay(habitId, day);
+    playCheckSound(isNowChecked);
+
+    if (isNowChecked) {
+      // Check if all habits for this day are completed
+      let totalCompletedOnDay = 0;
+      habits.forEach(h => {
+        const isHChecked = (h.id === habitId) ? true : !!(checkData[h.id] && checkData[h.id][day]);
+        if (isHChecked) totalCompletedOnDay++;
+      });
+
+      if (totalCompletedOnDay === habits.length && habits.length > 0) {
+        triggerCelebration();
+        addToast(`🔥 100% PERFECT DAY ${day}! Winter Arc Discipline!`);
+      }
+    }
+  };
+
+  const handleQuickFill = () => {
+    const success = quickFillToday();
+    if (success) {
+      triggerCelebration();
+      playCheckSound(true);
+      addToast(`Crushed all ${habits.length} habits for today! 🚀`);
+    } else {
+      addToast("Switch to the current month to mark today's habits.");
+    }
+  };
+
+  const handleResetMonth = () => {
+    if (window.confirm("Are you sure you want to reset all checkmarks for this month?")) {
+      resetCurrentMonth();
+      addToast("Month checkmarks reset successfully.");
+    }
+  };
+
+  const handleOpenAddModal = () => {
+    setHabitToEdit(null);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (habit) => {
+    setHabitToEdit(habit);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveModal = (data) => {
+    if (habitToEdit) {
+      editHabit(habitToEdit.id, data);
+      addToast(`Updated habit "${data.name}"`);
+    } else {
+      addHabit(data);
+      addToast(`Added new habit "${data.name}"`);
+    }
+  };
+
+  const handleDeleteHabit = (habitId) => {
+    const habit = habits.find(h => h.id === habitId);
+    if (!habit) return;
+    if (window.confirm(`Delete habit "${habit.name}"?`)) {
+      deleteHabit(habitId);
+      addToast(`Deleted "${habit.name}"`);
+    }
+  };
+
+  const handleRestoreDefaults = () => {
+    if (window.confirm("Reset habits back to the 11 default Winter Arc habits from your handwritten notebook?")) {
+      restoreDefaults();
+      addToast("Winter Arc habits restored! ❄️");
+    }
+  };
+
+  return (
+    <div className="app-container">
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} />
+
+      {/* Header */}
+      <Header
+        selectedYear={selectedYear}
+        setSelectedYear={setSelectedYear}
+        selectedMonth={selectedMonth}
+        setSelectedMonth={setSelectedMonth}
+        soundEnabled={soundEnabled}
+        toggleSound={toggleSound}
+        theme={theme}
+        setTheme={setTheme}
+        currentThemeObj={currentThemeObj}
+        themes={themes}
+        onExportCsv={exportCsv}
+        onOpenAddModal={handleOpenAddModal}
+      />
+
+      {/* Main Content */}
+      <main className="main-content">
+        {/* Top Analytics Dashboard (Image 2 Reference) */}
+        <section className="dashboard-section">
+          <SummaryCard
+            completed={stats.totalCompleted}
+            goal={stats.totalGoal}
+          />
+          <WeeklyDonuts weeklyStats={stats.weeklyStats} />
+        </section>
+
+        {/* Second Row Charts: Daily Bar Chart & Category Progress */}
+        <section className="charts-row-section">
+          <DailyBarChart
+            daysInMonth={daysInMonth}
+            dailyCounts={stats.dailyCounts}
+            maxHabitCount={habits.length}
+            todayDay={todayDayNumber}
+          />
+          <CategoryProgress categoryStats={stats.categoryStats} />
+        </section>
+
+        {/* Search & Filter Toolbar */}
+        <TableToolbar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          categoryFilter={categoryFilter}
+          setCategoryFilter={setCategoryFilter}
+          onQuickFillToday={handleQuickFill}
+          onResetMonth={handleResetMonth}
+        />
+
+        {/* Spreadsheet Matrix Table (Images 1 & 3 Reference) */}
+        <HabitTable
+          habits={habits}
+          checkData={checkData}
+          daysInMonth={daysInMonth}
+          todayDayNumber={todayDayNumber}
+          selectedYear={selectedYear}
+          selectedMonth={selectedMonth}
+          stats={stats}
+          searchQuery={searchQuery}
+          categoryFilter={categoryFilter}
+          onToggleDay={handleToggleDay}
+          onUpdateGoal={updateHabitGoal}
+          onEditHabit={handleOpenEditModal}
+          onDeleteHabit={handleDeleteHabit}
+          onOpenAddModal={handleOpenAddModal}
+        />
+
+        {/* Daily Reflection & Winter Arc Timelog */}
+        <section className="bottom-extra-section">
+          <WinterArcLog
+            dailyMetrics={dailyMetrics}
+            persistDailyMetrics={persistDailyMetrics}
+            todayDayNumber={todayDayNumber}
+            onNotify={addToast}
+          />
+          <QuoteCard />
+        </section>
+      </main>
+
+      {/* Footer */}
+      <footer className="app-footer">
+        <div className="footer-left">
+          <ShieldCheck size={14} className="text-emerald-500" />
+          <span>Winter Arc Habit Tracker • React Edition • Built for High Performance</span>
+        </div>
+        <div className="footer-right">
+          <button onClick={handleRestoreDefaults} className="footer-link-btn">
+            <RotateCcw size={12} />
+            <span>Restore Notebook Habits</span>
+          </button>
+          <button onClick={exportJson} className="footer-link-btn">
+            <Download size={12} />
+            <span>Backup JSON</span>
+          </button>
+          <label className="footer-link-btn file-import-label">
+            <Upload size={12} />
+            <span>Restore Backup</span>
+            <input
+              type="file"
+              accept=".json"
+              style={{ display: 'none' }}
+              onChange={(e) => importJson(e.target.files[0], () => addToast("Backup restored! 🎉"))}
+            />
+          </label>
+        </div>
+      </footer>
+
+      {/* Habit Add/Edit Modal */}
+      <HabitModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        habitToEdit={habitToEdit}
+        onSave={handleSaveModal}
+      />
+    </div>
+  );
+}
+export default App;
