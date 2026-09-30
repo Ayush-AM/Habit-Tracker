@@ -169,8 +169,32 @@ export const MONTH_NAMES = [
 export const DAY_LETTERS = ["S", "M", "T", "W", "T", "F", "S"];
 
 export const THEMES = [
-  { id: "theme-pastel", name: "Pastel Sheet", icon: "FileSpreadsheet", desc: "Reference spreadsheet style" },
-  { id: "theme-frost", name: "Winter Arc Frost", icon: "Snowflake", desc: "Icy dark mode" },
-  { id: "theme-midnight", name: "Midnight Cyber", icon: "Moon", desc: "OLED neon aesthetic" },
-  { id: "theme-clean", name: "Clean Minimal", icon: "Sun", desc: "Crisp light workspace" }
+  { 
+    id: "theme-pastel", 
+    name: "Pastel Sheet", 
+    icon: "FileSpreadsheet", 
+    desc: "Reference spreadsheet style",
+    colors: ["#6366f1", "#0d9488", "#db2777", "#ca8a04"]
+  },
+  { 
+    id: "theme-frost", 
+    name: "Winter Arc Frost", 
+    icon: "Snowflake", 
+    desc: "Icy dark mode with high contrast",
+    colors: ["#38bdf8", "#0b1120", "#a78bfa", "#2dd4bf"]
+  },
+  { 
+    id: "theme-midnight", 
+    name: "Midnight Cyber", 
+    icon: "Moon", 
+    desc: "OLED neon aesthetic for night owls",
+    colors: ["#06b6d4", "#030712", "#c084fc", "#34d399"]
+  },
+  { 
+    id: "theme-clean", 
+    name: "Clean Minimal", 
+    icon: "Sun", 
+    desc: "Crisp light workspace layout",
+    colors: ["#2563eb", "#ffffff", "#0f172a", "#10b981"]
+  }
 ];

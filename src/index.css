@@ -437,9 +437,22 @@ body {
   color: var(--accent-primary);
 }
 
-/* Theme Dropdown */
+/* Theme Dropdown & Mobile Backdrop */
 .theme-selector-dropdown {
   position: relative;
+}
+
+.theme-menu-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  animation: fadeIn 0.15s ease;
 }
 
 .theme-menu {
@@ -450,19 +463,47 @@ body {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
-  min-width: 230px;
-  z-index: 100;
-  padding: 8px;
+  min-width: 250px;
+  z-index: 1001;
+  padding: 10px;
   animation: fadeInDown 0.15s ease;
 }
 
 .theme-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   font-size: 11px;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   color: var(--text-muted);
   padding: 4px 8px 8px 8px;
   border-bottom: 1px solid var(--border-color);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+}
+
+.theme-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s;
+}
+
+.theme-close-btn:hover {
+  color: var(--text-main);
+}
+
+.theme-opts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .theme-opt {
@@ -472,39 +513,75 @@ body {
   width: 100%;
   text-align: left;
   background: none;
-  border: none;
+  border: 1px solid transparent;
   padding: 8px 10px;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: background 0.15s;
+  transition: all 0.15s ease;
 }
 
 .theme-opt-icon {
   font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .theme-opt-text {
   display: flex;
   flex-direction: column;
+  flex: 1;
 }
 
 .theme-opt-title {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--text-main);
 }
 
 .theme-opt-desc {
-  font-size: 10px;
+  font-size: 10.5px;
   color: var(--text-muted);
+}
+
+.theme-active-check {
+  color: var(--accent-primary);
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .theme-opt:hover, .theme-opt.active {
   background: var(--accent-primary-light);
+  border-color: rgba(59, 130, 246, 0.25);
 }
 
 .theme-opt.active .theme-opt-title {
   color: var(--accent-primary);
+}
+
+.theme-sheet-handle {
+  display: none;
+  width: 44px;
+  height: 5px;
+  background: var(--border-color);
+  border-radius: 999px;
+  margin: 0 auto 12px auto;
+}
+
+.theme-opt-swatches {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.theme-opt-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  display: inline-block;
+  flex-shrink: 0;
 }
 
 /* ==========================================================================
@@ -2005,6 +2082,89 @@ body.theme-frost .th-progress, body.theme-midnight .th-progress {
   margin-top: 8px;
 }
 
+/* Touch Goal Stepper in HabitModal */
+.goal-stepper-wrap {
+  display: flex;
+  align-items: center;
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.goal-step-btn {
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: none;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  touch-action: manipulation;
+}
+
+.goal-step-btn:hover,
+.goal-step-btn:active {
+  background: var(--accent-primary-light);
+  color: var(--accent-primary);
+}
+
+.goal-stepper-input {
+  flex: 1;
+  text-align: center;
+  border: none !important;
+  background: transparent !important;
+  padding: 8px !important;
+  font-weight: 700;
+  font-size: 15px;
+  width: 100%;
+  color: var(--text-main);
+}
+
+/* Modal Actions Bar (Edit/Add with Danger Delete) */
+.modal-actions-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-color);
+  flex-wrap: wrap;
+}
+
+.modal-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.danger-delete-btn {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  padding: 9px 15px;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  touch-action: manipulation;
+}
+
+.danger-delete-btn:hover,
+.danger-delete-btn:active {
+  background: #ef4444;
+  color: #ffffff;
+  border-color: #ef4444;
+  box-shadow: 0 2px 10px rgba(239, 68, 68, 0.35);
+}
+
 /* Toast Notifications */
 .toast-container {
   position: fixed;
@@ -2036,6 +2196,7 @@ body.theme-frost .th-progress, body.theme-midnight .th-progress {
 @keyframes fadeInDown { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes scaleUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes slideUpBottom { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
 /* ==========================================================================
    Mobile Daily View (Today's Focus Mode)
@@ -2259,6 +2420,53 @@ body.theme-frost .th-progress, body.theme-midnight .th-progress {
   transition: width 0.3s ease;
 }
 
+.mobile-card-right-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.mobile-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.mobile-card-action-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  touch-action: manipulation;
+}
+
+.mobile-card-action-btn:hover,
+.mobile-card-action-btn:active {
+  transform: scale(1.08);
+}
+
+.mobile-card-action-btn.edit-action:hover,
+.mobile-card-action-btn.edit-action:active {
+  color: var(--accent-primary);
+  background: var(--accent-primary-light);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.mobile-card-action-btn.delete-action:hover,
+.mobile-card-action-btn.delete-action:active {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
 .mobile-touch-checkbox-container {
   display: flex;
   align-items: center;
@@ -2393,6 +2601,66 @@ body.theme-frost .th-progress, body.theme-midnight .th-progress {
 
   .theme-btn-label {
     display: none;
+  }
+
+  /* Mobile Bottom Sheet Theme Menu Drawer */
+  .theme-menu {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 20px 20px 0 0 !important;
+    max-height: 82vh !important;
+    overflow-y: auto !important;
+    padding: 16px 20px 36px 20px !important;
+    z-index: 1005 !important;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.55) !important;
+    animation: slideUpBottom 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
+  .theme-sheet-handle {
+    display: block !important;
+  }
+
+  .theme-menu-header {
+    font-size: 13px !important;
+    padding-bottom: 12px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .theme-close-btn {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 8px !important;
+    background: var(--bg-app) !important;
+    border: 1px solid var(--border-color) !important;
+  }
+
+  .theme-opt {
+    padding: 12px 14px !important;
+    min-height: 56px !important;
+    border-radius: var(--radius-md) !important;
+  }
+
+  .theme-opt-title {
+    font-size: 14px !important;
+  }
+
+  .theme-opt-desc {
+    font-size: 11.5px !important;
+  }
+
+  .theme-opt-swatches {
+    margin-top: 6px !important;
+  }
+
+  .theme-opt-swatch {
+    width: 11px !important;
+    height: 11px !important;
   }
 
   .header-right .action-btn {
@@ -2588,19 +2856,78 @@ body.theme-frost .th-progress, body.theme-midnight .th-progress {
     gap: 12px;
   }
 
-  /* Modal */
+  /* Modal Mobile Responsiveness */
+  .modal-backdrop {
+    padding: 0;
+    align-items: flex-end;
+  }
+
   .modal-card {
-    max-height: 85vh;
-    overflow-y: auto;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 20px 20px 0 0 !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    animation: slideUpBottom 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    padding-bottom: 24px;
+  }
+
+  .modal-input,
+  .modal-select {
+    font-size: 16px !important; /* Prevents iOS auto-zoom on input focus */
+    min-height: 44px;
   }
 
   .form-row {
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 12px;
   }
 
   .pro-icon-picker-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr) !important;
+    max-height: 190px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .modal-actions-bar {
+    flex-direction: column-reverse !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+
+  .modal-actions-right {
+    width: 100% !important;
+    display: flex !important;
+    gap: 8px !important;
+  }
+
+  .modal-actions-right .action-btn {
+    flex: 1 !important;
+    min-height: 44px !important;
+    justify-content: center !important;
+  }
+
+  .danger-delete-btn {
+    width: 100% !important;
+    min-height: 44px !important;
+    justify-content: center !important;
+  }
+
+  /* Habit Table Row Actions on Touch/Mobile Screens */
+  .habit-row-actions {
+    opacity: 1 !important;
+    display: flex !important;
+  }
+
+  .row-btn {
+    width: 32px !important;
+    height: 32px !important;
+    padding: 6px !important;
+    border-radius: 6px !important;
+    background: var(--bg-app) !important;
+    border: 1px solid var(--border-color) !important;
   }
 }
 

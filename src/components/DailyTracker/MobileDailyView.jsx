@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, Flame, Plus, CheckCircle2 } from 'lucide-react';
+import { Check, Flame, Plus, CheckCircle2, Edit3, Trash2 } from 'lucide-react';
 import { HabitIcon } from '../Common/HabitIcon';
 
 export function MobileDailyView({
@@ -10,7 +10,9 @@ export function MobileDailyView({
   selectedYear,
   stats,
   onToggleDay,
-  onOpenAddModal
+  onOpenAddModal,
+  onEditHabit,
+  onDeleteHabit
 }) {
   const [filterMode, setFilterMode] = useState('ALL'); // 'ALL' | 'PENDING' | 'DONE'
 
@@ -117,6 +119,7 @@ export function MobileDailyView({
               onClick={() => onToggleDay(habit.id, activeDay)}
             >
               <div className="mobile-card-main">
+                {/* Left Icon */}
                 <div
                   className="mobile-card-icon-wrap"
                   style={{
@@ -127,6 +130,7 @@ export function MobileDailyView({
                   <HabitIcon name={habit.icon} size={20} />
                 </div>
 
+                {/* Middle Info */}
                 <div className="mobile-card-details">
                   <div className="mobile-card-topline">
                     <span className="mobile-habit-name">{habit.name}</span>
@@ -157,19 +161,55 @@ export function MobileDailyView({
                   </div>
                 </div>
 
-                {/* Touch Checkbox Button */}
-                <div className="mobile-touch-checkbox-container">
-                  <button
-                    type="button"
-                    className={`mobile-check-button ${habit.isDone ? 'checked' : ''}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onToggleDay(habit.id, activeDay);
-                    }}
-                    aria-label={`Mark ${habit.name} ${habit.isDone ? 'incomplete' : 'complete'}`}
-                  >
-                    {habit.isDone ? <Check size={18} strokeWidth={3} /> : null}
-                  </button>
+                {/* Right Actions: Edit, Delete & Big Touch Checkbox */}
+                <div 
+                  className="mobile-card-right-group"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="mobile-card-actions">
+                    {onEditHabit && (
+                      <button
+                        type="button"
+                        className="mobile-card-action-btn edit-action"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEditHabit(habit);
+                        }}
+                        title={`Edit ${habit.name}`}
+                        aria-label={`Edit ${habit.name}`}
+                      >
+                        <Edit3 size={15} />
+                      </button>
+                    )}
+                    {onDeleteHabit && (
+                      <button
+                        type="button"
+                        className="mobile-card-action-btn delete-action"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteHabit(habit.id);
+                        }}
+                        title={`Delete ${habit.name}`}
+                        aria-label={`Delete ${habit.name}`}
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="mobile-touch-checkbox-container">
+                    <button
+                      type="button"
+                      className={`mobile-check-button ${habit.isDone ? 'checked' : ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleDay(habit.id, activeDay);
+                      }}
+                      aria-label={`Mark ${habit.name} ${habit.isDone ? 'incomplete' : 'complete'}`}
+                    >
+                      {habit.isDone ? <Check size={18} strokeWidth={3} /> : null}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -185,7 +225,7 @@ export function MobileDailyView({
           style={{ width: '100%', justifyContent: 'center' }}
         >
           <Plus size={16} />
-          <span>New Habit</span>
+          <span>Add New Habit</span>
         </button>
       </div>
     </div>

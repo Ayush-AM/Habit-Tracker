@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Check } from 'lucide-react';
+import { X, Check, Trash2, Minus, Plus } from 'lucide-react';
 import { HABIT_CATEGORIES } from '../../types/habit';
 import { HabitIcon, POPULAR_PROFESSIONAL_ICONS } from '../Common/HabitIcon';
 
@@ -7,7 +7,8 @@ export function HabitModal({
   isOpen,
   onClose,
   habitToEdit,
-  onSave
+  onSave,
+  onDelete
 }) {
   const [name, setName] = useState('');
   const [category, setCategory] = useState('Tech / Study');
@@ -37,46 +38,73 @@ export function HabitModal({
     onSave({
       name: name.trim(),
       category,
-      goal: parseInt(goal, 10) || 20,
+      goal: Math.max(1, Math.min(31, parseInt(goal, 10) || 20)),
       icon: icon || 'Database'
     });
     onClose();
   };
 
+  const handleAdjustGoal = (delta) => {
+    setGoal(prev => Math.max(1, Math.min(31, (parseInt(prev, 10) || 20) + delta)));
+  };
+
+  const handleDelete = () => {
+    if (!habitToEdit || !onDelete) return;
+    const result = onDelete(habitToEdit.id);
+    if (result !== false) {
+      onClose();
+    }
+  };
+
   return (
     <div className="modal-backdrop show" onClick={onClose}>
-      <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-card habit-modal-card" onClick={(e) => e.stopPropagation()}>
+        {/* Modal Header */}
         <div className="modal-header">
           <div className="modal-title-wrap">
             <span className="modal-header-icon">
-              <HabitIcon name={icon} size={18} />
+              <HabitIcon name={icon} size={20} />
             </span>
-            <h3>{habitToEdit ? 'Edit Habit' : 'Add New Habit'}</h3>
+            <div>
+              <h3>{habitToEdit ? 'Edit Habit' : 'Add New Habit'}</h3>
+              <span className="modal-header-sub">
+                {habitToEdit ? `Updating "${habitToEdit.name}"` : 'Add to your Winter Arc discipline'}
+              </span>
+            </div>
           </div>
           <button className="modal-close-btn" onClick={onClose} aria-label="Close modal">
-            <X size={18} />
+            <X size={20} />
           </button>
         </div>
 
+        {/* Modal Form */}
         <form onSubmit={handleSubmit} className="modal-body">
+          {/* Habit Name */}
           <div className="form-group">
-            <label htmlFor="modalHabitName">Habit Name *</label>
+            <label htmlFor="modalHabitName" className="form-label">
+              Habit Name *
+            </label>
             <input
               id="modalHabitName"
               type="text"
               required
-              placeholder="e.g. SQL, DSA, 3 L Water, Cyber, Open Source..."
+              className="modal-input"
+              placeholder="e.g. SQL, DSA, 3 L Water, Gym, Reading..."
               value={name}
               onChange={(e) => setName(e.target.value)}
               autoFocus
             />
           </div>
 
+          {/* Category & Goal Row */}
           <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="modalHabitCat">Category</label>
+            <div className="form-group flex-1">
+              <label htmlFor="modalHabitCat" className="form-label">
+                Category
+              </label>
               <select
                 id="modalHabitCat"
+                className="modal-select"
                 value={category}
                 onChange={(e) => {
                   setCategory(e.target.value);
@@ -92,26 +120,47 @@ export function HabitModal({
               </select>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="modalHabitGoal">Monthly Goal (Days)</label>
-              <input
-                id="modalHabitGoal"
-                type="number"
-                min="1"
-                max="31"
-                required
-                value={goal}
-                onChange={(e) => setGoal(e.target.value)}
-              />
+            <div className="form-group flex-1">
+              <label htmlFor="modalHabitGoal" className="form-label">
+                Monthly Goal (Days)
+              </label>
+              <div className="goal-stepper-wrap">
+                <button 
+                  type="button" 
+                  className="goal-step-btn" 
+                  onClick={() => handleAdjustGoal(-1)}
+                  aria-label="Decrease goal"
+                >
+                  <Minus size={14} />
+                </button>
+                <input
+                  id="modalHabitGoal"
+                  type="number"
+                  min="1"
+                  max="31"
+                  required
+                  className="modal-input goal-stepper-input"
+                  value={goal}
+                  onChange={(e) => setGoal(e.target.value)}
+                />
+                <button 
+                  type="button" 
+                  className="goal-step-btn" 
+                  onClick={() => handleAdjustGoal(1)}
+                  aria-label="Increase goal"
+                >
+                  <Plus size={14} />
+                </button>
+              </div>
             </div>
           </div>
 
           {/* Professional Icon Picker */}
           <div className="form-group">
             <div className="icon-picker-label-row">
-              <label>Professional Icon</label>
+              <label className="form-label">Icon</label>
               <span className="selected-icon-badge">
-                Selected: <HabitIcon name={icon} size={13} /> <strong>{icon}</strong>
+                Selected: <HabitIcon name={icon} size={14} /> <strong>{icon}</strong>
               </span>
             </div>
 
@@ -126,7 +175,7 @@ export function HabitModal({
                     onClick={() => setIcon(item.key)}
                     title={item.name}
                   >
-                    <HabitIcon name={item.key} size={18} />
+                    <HabitIcon name={item.key} size={20} />
                     <span className="pro-icon-name">{item.key}</span>
                   </button>
                 );
@@ -134,21 +183,35 @@ export function HabitModal({
             </div>
           </div>
 
-          <div className="modal-actions">
-            <button
-              type="button"
-              className="action-btn secondary-btn"
-              onClick={onClose}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="action-btn primary-btn"
-            >
-              <Check size={16} />
-              <span>{habitToEdit ? 'Save Changes' : 'Create Habit'}</span>
-            </button>
+          {/* Actions Bar */}
+          <div className="modal-actions-bar">
+            {habitToEdit && onDelete ? (
+              <button
+                type="button"
+                className="action-btn danger-delete-btn"
+                onClick={handleDelete}
+              >
+                <Trash2 size={16} />
+                <span>Delete Habit</span>
+              </button>
+            ) : <div />}
+
+            <div className="modal-actions-right">
+              <button
+                type="button"
+                className="action-btn secondary-btn"
+                onClick={onClose}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="action-btn primary-btn"
+              >
+                <Check size={16} />
+                <span>{habitToEdit ? 'Save Changes' : 'Create Habit'}</span>
+              </button>
+            </div>
           </div>
         </form>
       </div>

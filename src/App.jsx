@@ -56,7 +56,23 @@ export function App() {
   const { theme, setTheme, currentThemeObj, themes } = useTheme();
 
   // View Mode: 'grid' (Matrix Spreadsheet) or 'daily' (Mobile Daily Focus)
-  const [viewMode, setViewMode] = useState('grid');
+  const [viewMode, setViewMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('winter_arc_view_mode');
+      if (saved) return saved;
+      return window.innerWidth <= 768 ? 'daily' : 'grid';
+    }
+    return 'grid';
+  });
+
+  const handleSetViewMode = (mode) => {
+    setViewMode(mode);
+    try {
+      localStorage.setItem('winter_arc_view_mode', mode);
+    } catch (e) {
+      // ignore
+    }
+  };
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -113,11 +129,13 @@ export function App() {
 
   const handleDeleteHabit = (habitId) => {
     const habit = habits.find(h => h.id === habitId);
-    if (!habit) return;
+    if (!habit) return false;
     if (window.confirm(`Delete habit "${habit.name}"?`)) {
       deleteHabit(habitId);
       addToast(`Deleted "${habit.name}" (Auto-synced).`);
+      return true;
     }
+    return false;
   };
 
   const handleRestoreDefaults = () => {
@@ -186,7 +204,7 @@ export function App() {
           categoryFilter={categoryFilter}
           setCategoryFilter={setCategoryFilter}
           viewMode={viewMode}
-          setViewMode={setViewMode}
+          setViewMode={handleSetViewMode}
         />
 
         {/* View Mode Switching: Spreadsheet Matrix or Mobile Daily Focus */}
@@ -200,6 +218,8 @@ export function App() {
             stats={stats}
             onToggleDay={handleToggleDay}
             onOpenAddModal={handleOpenAddModal}
+            onEditHabit={handleOpenEditModal}
+            onDeleteHabit={handleDeleteHabit}
           />
         ) : (
           <HabitTable
@@ -266,6 +286,7 @@ export function App() {
         onClose={() => setIsModalOpen(false)}
         habitToEdit={habitToEdit}
         onSave={handleSaveModal}
+        onDelete={handleDeleteHabit}
       />
     </div>
   );

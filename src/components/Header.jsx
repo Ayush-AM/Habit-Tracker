@@ -11,7 +11,8 @@ import {
   CalendarDays,
   Cloud,
   RefreshCw,
-  Check
+  Check,
+  X
 } from 'lucide-react';
 import { MONTH_NAMES } from '../types/habit';
 import { HabitIcon } from './Common/HabitIcon';
@@ -87,7 +88,7 @@ export function Header({
         </div>
         <div className="winter-arc-tag">
           <span className="pulse-dot"></span>
-          <span>{arcStarted ? (arcEnded ? `COMPLETED • ${totalArcDays} DAYS` : `LOCKED IN • DAY ${arcDay} / ${totalArcDays}`) : 'STARTS OCT 1'}</span>
+          <span>{arcStarted ? (arcEnded ? `COMPLETED • ${totalArcDays} DAYS` : `DAY ${arcDay} / ${totalArcDays}`) : 'STARTS OCT 1'}</span>
         </div>
       </div>
 
@@ -132,18 +133,18 @@ export function Header({
           {syncStatus === 'syncing' ? (
             <>
               <RefreshCw size={13} className="spin text-blue-500" />
-              <span className="sync-pill-text">Syncing...</span>
+              <span className="sync-pill-text">Syncing</span>
             </>
           ) : syncStatus === 'offline' ? (
             <>
               <Cloud size={13} className="text-muted" />
-              <span className="sync-pill-text">Local Cache</span>
+              <span className="sync-pill-text">Offline</span>
             </>
           ) : (
             <>
               <span className="sync-pulse-dot"></span>
               <Cloud size={13} className="text-emerald-500" />
-              <span className="sync-pill-text">Auto-Synced</span>
+              <span className="sync-pill-text">Synced</span>
             </>
           )}
         </button>
@@ -151,52 +152,86 @@ export function Header({
         {/* Sound Toggle */}
         <button 
           onClick={toggleSound} 
-          className="icon-btn" 
+          className="icon-btn header-sound-btn" 
           title={soundEnabled ? "Sound enabled (click to mute)" : "Sound muted (click to enable)"}
+          aria-label="Toggle Sound"
         >
           {soundEnabled ? <Bell size={16} className="text-primary" /> : <BellOff size={16} />}
         </button>
 
-        {/* Theme Menu Dropdown */}
+        {/* Theme Menu Dropdown with Backdrop for Touch Devices */}
         <div className="theme-selector-dropdown">
           <button 
             className="icon-btn theme-btn" 
             onClick={() => setShowThemeMenu(prev => !prev)}
-            title="Switch Theme"
+            title="Switch UI Theme"
+            aria-label="Switch UI Theme"
           >
             <Palette size={16} />
             <span className="theme-btn-label">{currentThemeObj.name}</span>
           </button>
 
           {showThemeMenu && (
-            <div className="theme-menu show" onMouseLeave={() => setShowThemeMenu(false)}>
-              <div className="theme-menu-header">Select UI Theme</div>
-              {themes.map(t => (
-                <button
-                  key={t.id}
-                  className={`theme-opt ${theme === t.id ? 'active' : ''}`}
-                  onClick={() => {
-                    setTheme(t.id);
-                    setShowThemeMenu(false);
-                  }}
-                >
-                  <span className="theme-opt-icon">
-                    <HabitIcon name={t.icon} size={16} />
-                  </span>
-                  <div className="theme-opt-text">
-                    <span className="theme-opt-title">{t.name}</span>
-                    <span className="theme-opt-desc">{t.desc}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
+            <>
+              <div 
+                className="theme-menu-backdrop" 
+                onClick={() => setShowThemeMenu(false)}
+              />
+              <div className="theme-menu show">
+                <div className="theme-sheet-handle" />
+                <div className="theme-menu-header">
+                  <span>Select UI Theme</span>
+                  <button 
+                    onClick={() => setShowThemeMenu(false)} 
+                    className="theme-close-btn"
+                    aria-label="Close"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+                <div className="theme-opts-list">
+                  {themes.map(t => (
+                    <button
+                      key={t.id}
+                      className={`theme-opt ${theme === t.id ? 'active' : ''}`}
+                      onClick={() => {
+                        setTheme(t.id);
+                        setShowThemeMenu(false);
+                      }}
+                    >
+                      <span className="theme-opt-icon">
+                        <HabitIcon name={t.icon} size={18} />
+                      </span>
+                      <div className="theme-opt-text">
+                        <span className="theme-opt-title">{t.name}</span>
+                        <span className="theme-opt-desc">{t.desc}</span>
+                        {t.colors && (
+                          <div className="theme-opt-swatches">
+                            {t.colors.map((c, i) => (
+                              <span 
+                                key={i} 
+                                className="theme-opt-swatch" 
+                                style={{ backgroundColor: c }} 
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      {theme === t.id && (
+                        <Check size={18} className="theme-active-check" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
           )}
         </div>
 
         {/* Export CSV */}
         <button 
           onClick={onExportCsv} 
-          className="action-btn secondary-btn" 
+          className="action-btn secondary-btn header-csv-btn" 
           title="Export CSV for Google Sheets / Excel"
         >
           <Download size={15} />
@@ -206,11 +241,11 @@ export function Header({
         {/* Add Habit */}
         <button 
           onClick={onOpenAddModal} 
-          className="action-btn primary-btn"
+          className="action-btn primary-btn header-add-btn"
           title="Add a new habit"
         >
           <Plus size={16} />
-          <span>Add Habit</span>
+          <span>New Habit</span>
         </button>
       </div>
     </header>
