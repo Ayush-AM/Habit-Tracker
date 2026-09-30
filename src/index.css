@@ -2640,3 +2640,68 @@ body.theme-frost .th-progress, body.theme-midnight .th-progress {
   }
 }
 
+/* ==========================================================================
+   SEAMLESS CLOUD AUTO-SYNC SYSTEM
+   ========================================================================== */
+
+/* Header Live Auto-Sync Pill */
+.auto-sync-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-main);
+  box-shadow: var(--shadow-sm);
+}
+
+.auto-sync-status-pill:hover {
+  transform: translateY(-1px);
+  border-color: rgba(16, 185, 129, 0.5);
+  box-shadow: var(--shadow-md);
+}
+
+.sync-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #10b981;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  animation: syncPulse 2s infinite;
+}
+
+@keyframes syncPulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 5px rgba(16, 185, 129, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+.sync-pill-text {
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+

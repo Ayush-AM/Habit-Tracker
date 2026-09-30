@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { 
   Snowflake, 
   ChevronLeft, 
@@ -8,7 +8,10 @@ import {
   Palette, 
   Download, 
   Plus, 
-  CalendarDays 
+  CalendarDays,
+  Cloud,
+  RefreshCw,
+  Check
 } from 'lucide-react';
 import { MONTH_NAMES } from '../types/habit';
 import { HabitIcon } from './Common/HabitIcon';
@@ -25,7 +28,10 @@ export function Header({
   currentThemeObj,
   themes,
   onExportCsv,
-  onOpenAddModal
+  onOpenAddModal,
+  syncStatus,
+  lastSynced,
+  onSyncNow
 }) {
   const [showThemeMenu, setShowThemeMenu] = useState(false);
 
@@ -73,7 +79,9 @@ export function Header({
             <Snowflake className="logo-snowflake" size={24} />
           </div>
           <div className="logo-text">
-            <h1>WINTER ARC</h1>
+            <div className="logo-title-row">
+              <h1>WINTER ARC</h1>
+            </div>
             <span className="sub-logo">OCT 1 → DEC 31 • HABIT TRACKER</span>
           </div>
         </div>
@@ -113,8 +121,33 @@ export function Header({
         </div>
       </div>
 
-      {/* Actions & Theme Settings */}
+      {/* Actions & Auto-Sync Status */}
       <div className="header-right">
+        {/* Live Auto-Sync Status Pill */}
+        <button
+          onClick={onSyncNow}
+          className="auto-sync-status-pill"
+          title="Auto-sync active: changes reflect between localhost and Vercel automatically. Click to force sync."
+        >
+          {syncStatus === 'syncing' ? (
+            <>
+              <RefreshCw size={13} className="spin text-blue-500" />
+              <span className="sync-pill-text">Syncing...</span>
+            </>
+          ) : syncStatus === 'offline' ? (
+            <>
+              <Cloud size={13} className="text-muted" />
+              <span className="sync-pill-text">Local Cache</span>
+            </>
+          ) : (
+            <>
+              <span className="sync-pulse-dot"></span>
+              <Cloud size={13} className="text-emerald-500" />
+              <span className="sync-pill-text">Auto-Synced</span>
+            </>
+          )}
+        </button>
+
         {/* Sound Toggle */}
         <button 
           onClick={toggleSound} 
@@ -167,13 +200,14 @@ export function Header({
           title="Export CSV for Google Sheets / Excel"
         >
           <Download size={15} />
-          <span>CSV Export</span>
+          <span>CSV</span>
         </button>
 
         {/* Add Habit */}
         <button 
           onClick={onOpenAddModal} 
           className="action-btn primary-btn"
+          title="Add a new habit"
         >
           <Plus size={16} />
           <span>Add Habit</span>

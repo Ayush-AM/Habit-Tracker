@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, Flame, Plus, Zap, CheckCircle2, Circle } from 'lucide-react';
+import { Check, Flame, Plus, Zap, CheckCircle2 } from 'lucide-react';
 import { HabitIcon } from '../Common/HabitIcon';
 
 export function MobileDailyView({
@@ -158,7 +158,7 @@ export function MobileDailyView({
                   </div>
                 </div>
 
-                {/* Big Touch Checkbox Button */}
+                {/* Touch Checkbox Button */}
                 <div className="mobile-touch-checkbox-container">
                   <button
                     type="button"

@@ -15,7 +15,7 @@ import { MobileDailyView } from './components/DailyTracker/MobileDailyView';
 import { WinterArcLog } from './components/DailyTracker/WinterArcLog';
 import { QuoteCard } from './components/DailyTracker/QuoteCard';
 import { HabitModal } from './components/Modals/HabitModal';
-import { RotateCcw, Download, Upload, ShieldCheck } from 'lucide-react';
+import { RotateCcw, Download, Upload, Cloud } from 'lucide-react';
 
 export function App() {
   const {
@@ -45,7 +45,11 @@ export function App() {
     restoreDefaults,
     exportCsv,
     exportJson,
-    importJson
+    importJson,
+    // Seamless Auto-Sync
+    syncStatus,
+    lastSynced,
+    syncNow
   } = useHabits();
 
   const { soundEnabled, toggleSound, playCheckSound } = useAudio();
@@ -68,7 +72,7 @@ export function App() {
     }, 3200);
   }, []);
 
-  // Checkbox Click with Sound & Milestone logic
+  // Checkbox Click with Sound, Milestone & Auto-Sync
   const handleToggleDay = (habitId, day) => {
     const isNowChecked = toggleHabitDay(habitId, day);
     playCheckSound(isNowChecked);
@@ -92,7 +96,7 @@ export function App() {
     if (success) {
       triggerCelebration();
       playCheckSound(true);
-      addToast(`Completed all ${habits.length} habits for today!`);
+      addToast(`Completed all ${habits.length} habits for today! Auto-synced.`);
     } else {
       addToast("Switch to the current month to mark today's habits.");
     }
@@ -101,7 +105,7 @@ export function App() {
   const handleResetMonth = () => {
     if (window.confirm("Are you sure you want to reset all checkmarks for this month?")) {
       resetCurrentMonth();
-      addToast("Month checkmarks reset successfully.");
+      addToast("Month checkmarks reset and auto-synced.");
     }
   };
 
@@ -118,10 +122,10 @@ export function App() {
   const handleSaveModal = (data) => {
     if (habitToEdit) {
       editHabit(habitToEdit.id, data);
-      addToast(`Updated habit "${data.name}"`);
+      addToast(`Updated habit "${data.name}" (Auto-synced).`);
     } else {
       addHabit(data);
-      addToast(`Added new habit "${data.name}"`);
+      addToast(`Added new habit "${data.name}" (Auto-synced).`);
     }
   };
 
@@ -130,15 +134,21 @@ export function App() {
     if (!habit) return;
     if (window.confirm(`Delete habit "${habit.name}"?`)) {
       deleteHabit(habitId);
-      addToast(`Deleted "${habit.name}"`);
+      addToast(`Deleted "${habit.name}" (Auto-synced).`);
     }
   };
 
   const handleRestoreDefaults = () => {
-    if (window.confirm("Reset habits back to the 12 default Winter Arc habits from your handwritten notebook?")) {
+    if (window.confirm("Reset habits back to the 12 default Winter Arc habits from your notebook?")) {
       restoreDefaults();
-      addToast("Winter Arc habits restored.");
+      addToast("Winter Arc notebook habits restored & auto-synced.");
     }
+  };
+
+  const handleSyncClick = async () => {
+    addToast("Checking cloud synchronization...");
+    await syncNow();
+    addToast("Cloud synchronized! Changes match localhost & Vercel.");
   };
 
   return (
@@ -146,7 +156,7 @@ export function App() {
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} />
 
-      {/* Header */}
+      {/* Header with Live Auto-Sync Status */}
       <Header
         selectedYear={selectedYear}
         setSelectedYear={setSelectedYear}
@@ -160,6 +170,9 @@ export function App() {
         themes={themes}
         onExportCsv={exportCsv}
         onOpenAddModal={handleOpenAddModal}
+        syncStatus={syncStatus}
+        lastSynced={lastSynced}
+        onSyncNow={handleSyncClick}
       />
 
       {/* Main Content */}
@@ -243,8 +256,8 @@ export function App() {
       {/* Footer */}
       <footer className="app-footer">
         <div className="footer-left">
-          <ShieldCheck size={14} className="text-emerald-500" />
-          <span>Winter Arc Habit Tracker • React Edition • Built for High Performance</span>
+          <Cloud size={14} className="text-emerald-500" />
+          <span>Winter Arc • Live Auto-Synchronized • Localhost & Vercel</span>
         </div>
         <div className="footer-right">
           <button onClick={handleRestoreDefaults} className="footer-link-btn">
@@ -262,7 +275,7 @@ export function App() {
               type="file"
               accept=".json"
               style={{ display: 'none' }}
-              onChange={(e) => importJson(e.target.files[0], () => addToast("Backup restored successfully."))}
+              onChange={(e) => importJson(e.target.files[0], () => addToast("Backup restored & auto-synced."))}
             />
           </label>
         </div>

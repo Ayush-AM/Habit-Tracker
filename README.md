@@ -28,14 +28,17 @@ Pre-loaded directly from your handwritten notes:
 
 ```
 src/
+├── lib/
+│   ├── supabase.js               # Supabase cloud client initialization
+│   └── syncService.js            # Multi-device real-time cloud sync & owner authentication
 ├── types/
 │   └── habit.js                  # Default Winter Arc habits, categories, quotes, themes
 ├── hooks/
-│   ├── useHabits.js              # State management, calendar calculations, streaks, CSV export, backups
+│   ├── useHabits.js              # State management, cloud sync, streaks, owner authorization
 │   ├── useAudio.js               # Web Audio API harmonic chimes for checking habits
 │   └── useTheme.js               # Dynamic CSS variable theme switcher
 ├── components/
-│   ├── Header.jsx                # Navigation bar, month navigator, theme selector, sound toggle, CSV export
+│   ├── Header.jsx                # Navigation bar, single-user owner status, cloud sync indicator
 │   ├── Dashboard/
 │   │   ├── SummaryCard.jsx       # Month summary circular gauge, completion statistics, pace badge
 │   │   ├── WeeklyDonuts.jsx      # Weeks 1 to 5 radial progress meters with pastel accents
@@ -46,10 +49,12 @@ src/
 │   │   ├── HabitTable.jsx        # Multi-row grouped week headers (W1..W5, Mon..Sun, 1..31)
 │   │   └── HabitRow.jsx          # Row with category badge, editable goal, streak badge, checkboxes
 │   ├── DailyTracker/
-│   │   ├── WinterArcLog.jsx      # Step counter, Water intake, Deep work hours, Timelapse & focus notes
+│   │   ├── MobileDailyView.jsx   # Touch-optimized mobile daily checklist with view-only lock
+│   │   ├── WinterArcLog.jsx      # Step counter, Water intake, Deep work hours, focus reflections
 │   │   └── QuoteCard.jsx         # Motivational Winter Arc quotes carousel
 │   ├── Modals/
-│   │   └── HabitModal.jsx        # Add/Edit Habit modal with category selector & emoji picker
+│   │   ├── HabitModal.jsx        # Add/Edit Habit modal with category selector & emoji picker
+│   │   └── OwnerModal.jsx        # Single-user owner authorization, cloud sync status & PIN settings
 │   └── Common/
 │       ├── Toast.jsx             # Animated toast notifications
 │       └── Confetti.js           # Milestone celebration confetti
@@ -62,7 +67,13 @@ src/
 
 ## 🌟 Key Features
 
-1. **Top Analytics Dashboard (Matching Reference Photo 2)**:
+1. **👑 Dedicated Single-User Architecture & Supabase Cloud Sync**:
+   - **Zero-Friction Access**: Designed exclusively for **Ayush**. No email/password forms required every time you open the app.
+   - **Cross-Device Status Tracking**: Habits, checkmarks, step counts, and focus reflections sync automatically in real-time between your phone, laptop, and Vercel deployment.
+   - **Vercel Handling Protection**: Unauthenticated visitors are restricted to **View-Only Mode**, ensuring no stranger can modify, delete, or check off your habits.
+   - **1-Click Auto-Unlock**: Bookmark `https://your-domain.vercel.app/?owner=2026` once on your phone or laptop to permanently remember your device and bypass all PIN prompts forever.
+
+2. **Top Analytics Dashboard (Matching Reference Photo 2)**:
    - **Summary Ring Gauge**: Real-time month completion percentage (`X completed / Y total goal`).
    - **5 Weekly Donut Rings**: Week 1 (Lilac), Week 2 (Mint Teal), Week 3 (Rose Pink), Week 4 (Sky Blue), and Week 5 (Amber).
    - **Daily Habit Count Bar Chart**: 1 to 31 dynamic vertical bars showing daily completion frequency.

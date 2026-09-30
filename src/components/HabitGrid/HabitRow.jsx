@@ -133,7 +133,7 @@ export function HabitRow({
               type="checkbox"
               className={`habit-checkbox ${weekClass}`}
               checked={isChecked}
-              onChange={() => {}} // Handled by TD click for better hit target
+              onChange={() => {}} // Handled by TD click
               title={`${habit.name} - Day ${day}`}
             />
           </td>

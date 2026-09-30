@@ -28,7 +28,7 @@ export function WinterArcLog({
       ...dailyMetrics,
       notes: updatedNotes
     });
-    if (onNotify) onNotify("Winter Arc focus note saved successfully.");
+    if (onNotify) onNotify("Winter Arc focus note saved and auto-synced.");
   };
 
   const todayStr = new Date().toLocaleDateString('en-US', {
@@ -44,7 +44,9 @@ export function WinterArcLog({
           <Video size={16} className="text-primary" />
           <h4>Winter Arc Daily Reflection & Timelog</h4>
         </div>
-        <span className="timestamp-badge">Today: {todayStr}</span>
+        <div className="header-badges-row">
+          <span className="timestamp-badge">Today: {todayStr}</span>
+        </div>
       </div>
 
       <div className="daily-log-form">
@@ -57,9 +59,19 @@ export function WinterArcLog({
             <div className="counter-info">
               <span className="counter-title">Daily Steps</span>
               <div className="counter-controls">
-                <button className="cnt-btn" onClick={() => handleAdjustMetric('steps', -1000)}>-</button>
+                <button 
+                  className="cnt-btn" 
+                  onClick={() => handleAdjustMetric('steps', -1000)}
+                >
+                  -
+                </button>
                 <span className="counter-val">{(dailyMetrics.steps || 8000).toLocaleString()}</span>
-                <button className="cnt-btn" onClick={() => handleAdjustMetric('steps', 1000)}>+</button>
+                <button 
+                  className="cnt-btn" 
+                  onClick={() => handleAdjustMetric('steps', 1000)}
+                >
+                  +
+                </button>
               </div>
             </div>
           </div>
@@ -72,45 +84,78 @@ export function WinterArcLog({
             <div className="counter-info">
               <span className="counter-title">Water Intake</span>
               <div className="counter-controls">
-                <button className="cnt-btn" onClick={() => handleAdjustMetric('water', -0.5)}>-</button>
+                <button 
+                  className="cnt-btn" 
+                  onClick={() => handleAdjustMetric('water', -0.5)}
+                >
+                  -
+                </button>
                 <span className="counter-val">{dailyMetrics.water || 3.0} L</span>
-                <button className="cnt-btn" onClick={() => handleAdjustMetric('water', 0.5)}>+</button>
+                <button 
+                  className="cnt-btn" 
+                  onClick={() => handleAdjustMetric('water', 0.5)}
+                >
+                  +
+                </button>
               </div>
             </div>
           </div>
 
           {/* Deep Work */}
           <div className="counter-box">
-            <div className="counter-icon-wrap bg-indigo-50 text-indigo-600">
+            <div className="counter-icon-wrap bg-violet-50 text-violet-600">
               <Clock size={20} />
             </div>
             <div className="counter-info">
               <span className="counter-title">Deep Work</span>
               <div className="counter-controls">
-                <button className="cnt-btn" onClick={() => handleAdjustMetric('deepWork', -0.5)}>-</button>
+                <button 
+                  className="cnt-btn" 
+                  onClick={() => handleAdjustMetric('deepWork', -0.5)}
+                >
+                  -
+                </button>
                 <span className="counter-val">{dailyMetrics.deepWork || 4.0} hrs</span>
-                <button className="cnt-btn" onClick={() => handleAdjustMetric('deepWork', 0.5)}>+</button>
+                <button 
+                  className="cnt-btn" 
+                  onClick={() => handleAdjustMetric('deepWork', 0.5)}
+                >
+                  +
+                </button>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="daily-note-input-row">
-          <input
-            type="text"
-            placeholder="Write today's focus note / video timelapse link / learnings..."
-            value={noteText}
-            onChange={(e) => setNoteText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleSaveNote();
-            }}
-          />
-          <button onClick={handleSaveNote} className="pill-btn primary-pill">
-            <Send size={13} />
-            <span>Save Note</span>
-          </button>
+        {/* Timelapse & Focus Notes */}
+        <div className="notes-entry-box">
+          <label className="notes-label">
+            Focus Reflection & Timelapse Video Link
+          </label>
+          <div className="notes-input-wrap">
+            <input
+              type="text"
+              className="notes-input"
+              placeholder="Log today's focus, git commits, or timelapses..."
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSaveNote();
+              }}
+            />
+            <button
+              onClick={handleSaveNote}
+              className="notes-save-btn"
+              title="Save reflection to cloud"
+            >
+              <Send size={15} />
+              <span>Save</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
   );
 }
+
+export default WinterArcLog;

@@ -1,5 +1,11 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { DEFAULT_WINTER_ARC_HABITS, MONTH_NAMES } from '../types/habit';
+import { 
+  fetchCloudData,
+  fetchAllCloudData,
+  saveCloudData, 
+  subscribeToCloudChanges 
+} from '../lib/syncService';
 
 export function useHabits() {
   const [currentDate] = useState(new Date());
@@ -8,11 +14,22 @@ export function useHabits() {
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
     const month = now.getMonth();
-    // If we're in Sep 2026 or earlier, show October (arc start)
     if (now.getFullYear() === 2026 && month < 9) return 9;
     return month;
   });
-  
+
+  // Cloud sync status: 'synced' | 'syncing' | 'offline'
+  const [syncStatus, setSyncStatus] = useState('synced');
+  const [lastSynced, setLastSynced] = useState(new Date());
+
+  // Prevent local optimistic writes from echoing back and creating flicker
+  const isSyncingFromCloudRef = useRef(false);
+  const lastLocalWriteTimeRef = useRef(0);
+
+  // Month check and metric keys
+  const checksKey = `winter_arc_checks_${selectedYear}_${selectedMonth}`;
+  const metricsKey = `winter_arc_metrics_${selectedYear}_${selectedMonth}`;
+
   // Legacy emoji migration map
   const emojiToProIcon = {
     '💻': 'Database',
@@ -36,7 +53,7 @@ export function useHabits() {
     '📌': 'Target'
   };
 
-  // Habits list
+  // Habits list (Instant load from localStorage, then hydrate from cloud)
   const [habits, setHabits] = useState(() => {
     const saved = localStorage.getItem('winter_arc_habits_list');
     if (saved) {
@@ -56,7 +73,6 @@ export function useHabits() {
   });
 
   // Checkmarks dictionary: { [habitId]: { [day]: boolean } }
-  // Starts completely empty — no sample data. User begins fresh from Oct 1.
   const [checkData, setCheckData] = useState(() => {
     const key = `winter_arc_checks_${new Date().getFullYear()}_${new Date().getMonth()}`;
     const saved = localStorage.getItem(key);
@@ -88,51 +104,190 @@ export function useHabits() {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
 
-  // Sync habits to localStorage
-  useEffect(() => {
-    localStorage.setItem('winter_arc_habits_list', JSON.stringify(habits));
-  }, [habits]);
+  // Core Cloud Sync Fetcher
+  const syncFromCloud = useCallback(async () => {
+    // If user made a local change in the last 1.2s, don't overwrite with older read
+    if (Date.now() - lastLocalWriteTimeRef.current < 1200) return;
 
-  // Load checkData when month/year changes
-  useEffect(() => {
-    const key = `winter_arc_checks_${selectedYear}_${selectedMonth}`;
-    const saved = localStorage.getItem(key);
-    if (saved) {
-      try {
-        setCheckData(JSON.parse(saved));
-      } catch (e) {
-        setCheckData({});
+    try {
+      setSyncStatus('syncing');
+      const allCloud = await fetchAllCloudData();
+
+      // Sync habits
+      if (allCloud.habits && Array.isArray(allCloud.habits.data) && allCloud.habits.data.length > 0) {
+        const cloudHabitsStr = JSON.stringify(allCloud.habits.data);
+        const localHabitsStr = localStorage.getItem('winter_arc_habits_list');
+        if (cloudHabitsStr !== localHabitsStr) {
+          isSyncingFromCloudRef.current = true;
+          setHabits(allCloud.habits.data);
+          localStorage.setItem('winter_arc_habits_list', cloudHabitsStr);
+          setTimeout(() => { isSyncingFromCloudRef.current = false; }, 100);
+        }
+      } else if (habits && habits.length > 0) {
+        // Initial seed to cloud
+        saveCloudData('habits', habits);
       }
+
+      // Sync monthly checks
+      if (allCloud[checksKey] && typeof allCloud[checksKey].data === 'object') {
+        const cloudChecksStr = JSON.stringify(allCloud[checksKey].data);
+        const localChecksStr = localStorage.getItem(checksKey);
+        if (cloudChecksStr !== localChecksStr) {
+          isSyncingFromCloudRef.current = true;
+          setCheckData(allCloud[checksKey].data);
+          localStorage.setItem(checksKey, cloudChecksStr);
+          setTimeout(() => { isSyncingFromCloudRef.current = false; }, 100);
+        }
+      }
+
+      // Sync monthly metrics
+      if (allCloud[metricsKey] && typeof allCloud[metricsKey].data === 'object') {
+        const cloudMetricsStr = JSON.stringify(allCloud[metricsKey].data);
+        const localMetricsStr = localStorage.getItem(metricsKey);
+        if (cloudMetricsStr !== localMetricsStr) {
+          isSyncingFromCloudRef.current = true;
+          setDailyMetrics(allCloud[metricsKey].data);
+          localStorage.setItem(metricsKey, cloudMetricsStr);
+          setTimeout(() => { isSyncingFromCloudRef.current = false; }, 100);
+        }
+      }
+
+      setSyncStatus('synced');
+      setLastSynced(new Date());
+    } catch (err) {
+      console.warn('[AutoSync] Error during syncFromCloud:', err);
+      setSyncStatus('offline');
+    }
+  }, [checksKey, metricsKey, habits]);
+
+  // 1. Initial Cloud Sync on Mount & Month Switch
+  useEffect(() => {
+    // First load from localStorage for instant display
+    const savedChecks = localStorage.getItem(checksKey);
+    if (savedChecks) {
+      try { setCheckData(JSON.parse(savedChecks)); } catch (e) {}
     } else {
       setCheckData({});
     }
 
-    const metricsKey = `winter_arc_metrics_${selectedYear}_${selectedMonth}`;
     const savedMetrics = localStorage.getItem(metricsKey);
     if (savedMetrics) {
-      try {
-        setDailyMetrics(JSON.parse(savedMetrics));
-      } catch (e) {
-        setDailyMetrics({ steps: 8000, water: 3.0, deepWork: 4.0, notes: {} });
-      }
+      try { setDailyMetrics(JSON.parse(savedMetrics)); } catch (e) {}
     } else {
       setDailyMetrics({ steps: 8000, water: 3.0, deepWork: 4.0, notes: {} });
     }
-  }, [selectedYear, selectedMonth]);
 
-  // Save checkData
-  const persistCheckData = useCallback((newData) => {
+    // Then pull live from cloud
+    syncFromCloud();
+  }, [selectedYear, selectedMonth, syncFromCloud, checksKey, metricsKey]);
+
+  // 2. Real-time Subscription (Live two-way sync across localhost & Vercel)
+  useEffect(() => {
+    const unsubscribe = subscribeToCloudChanges(({ key, data }) => {
+      // If we just wrote locally, ignore the immediate echo
+      if (Date.now() - lastLocalWriteTimeRef.current < 1200) return;
+
+      if (key === 'habits' && Array.isArray(data)) {
+        isSyncingFromCloudRef.current = true;
+        setHabits(data);
+        localStorage.setItem('winter_arc_habits_list', JSON.stringify(data));
+        setSyncStatus('synced');
+        setLastSynced(new Date());
+        setTimeout(() => { isSyncingFromCloudRef.current = false; }, 100);
+      } else if (key === checksKey && data) {
+        isSyncingFromCloudRef.current = true;
+        setCheckData(data);
+        localStorage.setItem(checksKey, JSON.stringify(data));
+        setSyncStatus('synced');
+        setLastSynced(new Date());
+        setTimeout(() => { isSyncingFromCloudRef.current = false; }, 100);
+      } else if (key === metricsKey && data) {
+        isSyncingFromCloudRef.current = true;
+        setDailyMetrics(data);
+        localStorage.setItem(metricsKey, JSON.stringify(data));
+        setSyncStatus('synced');
+        setLastSynced(new Date());
+        setTimeout(() => { isSyncingFromCloudRef.current = false; }, 100);
+      }
+    });
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [checksKey, metricsKey]);
+
+  // 3. Tab Visibility, Focus & Periodic Auto-Sync (Every 5 seconds)
+  useEffect(() => {
+    const handleFocus = () => {
+      syncFromCloud();
+    };
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        syncFromCloud();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    // Periodic 5-second sync to guarantee freshness across devices
+    const interval = setInterval(syncFromCloud, 5000);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      clearInterval(interval);
+    };
+  }, [syncFromCloud]);
+
+  // Persist checkData (Local + Supabase Cloud)
+  const persistCheckData = useCallback(async (newData) => {
+    lastLocalWriteTimeRef.current = Date.now();
     setCheckData(newData);
-    const key = `winter_arc_checks_${selectedYear}_${selectedMonth}`;
-    localStorage.setItem(key, JSON.stringify(newData));
-  }, [selectedYear, selectedMonth]);
+    localStorage.setItem(checksKey, JSON.stringify(newData));
 
-  // Save daily metrics
-  const persistDailyMetrics = useCallback((newMetrics) => {
+    setSyncStatus('syncing');
+    const success = await saveCloudData(checksKey, newData);
+    if (success) {
+      setSyncStatus('synced');
+      setLastSynced(new Date());
+    } else {
+      setSyncStatus('offline');
+    }
+  }, [checksKey]);
+
+  // Persist habits (Local + Supabase Cloud)
+  const persistHabits = useCallback(async (newHabits) => {
+    lastLocalWriteTimeRef.current = Date.now();
+    setHabits(newHabits);
+    localStorage.setItem('winter_arc_habits_list', JSON.stringify(newHabits));
+
+    setSyncStatus('syncing');
+    const success = await saveCloudData('habits', newHabits);
+    if (success) {
+      setSyncStatus('synced');
+      setLastSynced(new Date());
+    } else {
+      setSyncStatus('offline');
+    }
+  }, []);
+
+  // Persist daily metrics (Local + Supabase Cloud)
+  const persistDailyMetrics = useCallback(async (newMetrics) => {
+    lastLocalWriteTimeRef.current = Date.now();
     setDailyMetrics(newMetrics);
-    const key = `winter_arc_metrics_${selectedYear}_${selectedMonth}`;
-    localStorage.setItem(key, JSON.stringify(newMetrics));
-  }, [selectedYear, selectedMonth]);
+    localStorage.setItem(metricsKey, JSON.stringify(newMetrics));
+
+    setSyncStatus('syncing');
+    const success = await saveCloudData(metricsKey, newMetrics);
+    if (success) {
+      setSyncStatus('synced');
+      setLastSynced(new Date());
+    } else {
+      setSyncStatus('offline');
+    }
+  }, [metricsKey]);
 
   // Calendar info
   const daysInMonth = useMemo(() => {
@@ -279,8 +434,9 @@ export function useHabits() {
   const updateHabitGoal = useCallback((habitId, newGoal) => {
     const parsed = parseInt(newGoal, 10);
     if (isNaN(parsed) || parsed < 1) return;
-    setHabits(prev => prev.map(h => h.id === habitId ? { ...h, goal: Math.min(31, parsed) } : h));
-  }, []);
+    const updated = habits.map(h => h.id === habitId ? { ...h, goal: Math.min(31, parsed) } : h);
+    persistHabits(updated);
+  }, [habits, persistHabits]);
 
   const addHabit = useCallback((habit) => {
     const newHabit = {
@@ -288,21 +444,24 @@ export function useHabits() {
       id: `habit-${Date.now()}`,
       color: habit.color || '#3b82f6'
     };
-    setHabits(prev => [...prev, newHabit]);
-  }, []);
+    persistHabits([...habits, newHabit]);
+  }, [habits, persistHabits]);
 
   const editHabit = useCallback((habitId, updatedFields) => {
-    setHabits(prev => prev.map(h => h.id === habitId ? { ...h, ...updatedFields } : h));
-  }, []);
+    const updated = habits.map(h => h.id === habitId ? { ...h, ...updatedFields } : h);
+    persistHabits(updated);
+  }, [habits, persistHabits]);
 
   const deleteHabit = useCallback((habitId) => {
-    setHabits(prev => prev.filter(h => h.id !== habitId));
-    const updated = { ...checkData };
-    if (updated[habitId]) {
-      delete updated[habitId];
-      persistCheckData(updated);
+    const updatedHabits = habits.filter(h => h.id !== habitId);
+    persistHabits(updatedHabits);
+
+    const updatedChecks = { ...checkData };
+    if (updatedChecks[habitId]) {
+      delete updatedChecks[habitId];
+      persistCheckData(updatedChecks);
     }
-  }, [checkData, persistCheckData]);
+  }, [habits, checkData, persistHabits, persistCheckData]);
 
   const quickFillToday = useCallback(() => {
     if (!todayDayNumber) return false;
@@ -320,10 +479,10 @@ export function useHabits() {
   }, [persistCheckData]);
 
   const restoreDefaults = useCallback(() => {
-    setHabits(JSON.parse(JSON.stringify(DEFAULT_WINTER_ARC_HABITS)));
-    // Clean slate — no sample data
+    const defaultList = JSON.parse(JSON.stringify(DEFAULT_WINTER_ARC_HABITS));
+    persistHabits(defaultList);
     persistCheckData({});
-  }, [persistCheckData]);
+  }, [persistHabits, persistCheckData]);
 
   const exportCsv = useCallback(() => {
     const monthStr = MONTH_NAMES[selectedMonth];
@@ -366,12 +525,14 @@ export function useHabits() {
 
   const exportJson = useCallback(() => {
     const data = {
-      version: "2.0-react",
+      version: "2.2-auto-synced",
+      user: "Ayush",
       habits,
       checks: checkData,
       metrics: dailyMetrics,
       year: selectedYear,
-      month: selectedMonth
+      month: selectedMonth,
+      exportedAt: new Date().toISOString()
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -383,19 +544,19 @@ export function useHabits() {
     document.body.removeChild(link);
   }, [habits, checkData, dailyMetrics, selectedYear, selectedMonth]);
 
-  const importJson = useCallback((file, onSuccess, onError) => {
+  const importJson = useCallback(async (file, onSuccess, onError) => {
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         const imported = JSON.parse(e.target.result);
         if (imported.habits && Array.isArray(imported.habits)) {
-          setHabits(imported.habits);
+          await persistHabits(imported.habits);
         }
         if (imported.checks) {
-          persistCheckData(imported.checks);
+          await persistCheckData(imported.checks);
         }
         if (imported.metrics) {
-          persistDailyMetrics(imported.metrics);
+          await persistDailyMetrics(imported.metrics);
         }
         if (onSuccess) onSuccess();
       } catch (err) {
@@ -403,7 +564,7 @@ export function useHabits() {
       }
     };
     reader.readAsText(file);
-  }, [persistCheckData, persistDailyMetrics]);
+  }, [persistHabits, persistCheckData, persistDailyMetrics]);
 
   return {
     selectedYear,
@@ -432,6 +593,10 @@ export function useHabits() {
     restoreDefaults,
     exportCsv,
     exportJson,
-    importJson
+    importJson,
+    // Seamless Auto-Sync State
+    syncStatus,
+    lastSynced,
+    syncNow: syncFromCloud
   };
 }
