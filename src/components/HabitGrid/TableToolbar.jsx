@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Zap, RotateCcw, Table2, CheckSquare, Layers } from 'lucide-react';
+import { Search, Table2, CheckSquare, Layers } from 'lucide-react';
 import { HABIT_CATEGORIES } from '../../types/habit';
 import { HabitIcon } from '../Common/HabitIcon';
 
@@ -9,9 +9,7 @@ export function TableToolbar({
   categoryFilter,
   setCategoryFilter,
   viewMode = 'grid',
-  setViewMode,
-  onQuickFillToday,
-  onResetMonth
+  setViewMode
 }) {
   const categories = [{ name: "ALL", icon: "Layers" }, ...HABIT_CATEGORIES];
 
@@ -62,26 +60,6 @@ export function TableToolbar({
             </button>
           ))}
         </div>
-      </div>
-
-      <div className="toolbar-right">
-        <button
-          onClick={onQuickFillToday}
-          className="pill-btn highlight-pill"
-          title="Mark all habits for today"
-        >
-          <Zap size={14} />
-          <span>Check All Today</span>
-        </button>
-
-        <button
-          onClick={onResetMonth}
-          className="pill-btn danger-pill"
-          title="Reset checkmarks for current month"
-        >
-          <RotateCcw size={14} />
-          <span>Reset</span>
-        </button>
       </div>
     </div>
   );

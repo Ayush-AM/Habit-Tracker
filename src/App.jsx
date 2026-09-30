@@ -91,24 +91,6 @@ export function App() {
     }
   };
 
-  const handleQuickFill = () => {
-    const success = quickFillToday();
-    if (success) {
-      triggerCelebration();
-      playCheckSound(true);
-      addToast(`Completed all ${habits.length} habits for today! Auto-synced.`);
-    } else {
-      addToast("Switch to the current month to mark today's habits.");
-    }
-  };
-
-  const handleResetMonth = () => {
-    if (window.confirm("Are you sure you want to reset all checkmarks for this month?")) {
-      resetCurrentMonth();
-      addToast("Month checkmarks reset and auto-synced.");
-    }
-  };
-
   const handleOpenAddModal = () => {
     setHabitToEdit(null);
     setIsModalOpen(true);
@@ -205,8 +187,6 @@ export function App() {
           setCategoryFilter={setCategoryFilter}
           viewMode={viewMode}
           setViewMode={setViewMode}
-          onQuickFillToday={handleQuickFill}
-          onResetMonth={handleResetMonth}
         />
 
         {/* View Mode Switching: Spreadsheet Matrix or Mobile Daily Focus */}
@@ -220,7 +200,6 @@ export function App() {
             stats={stats}
             onToggleDay={handleToggleDay}
             onOpenAddModal={handleOpenAddModal}
-            onQuickFillToday={handleQuickFill}
           />
         ) : (
           <HabitTable

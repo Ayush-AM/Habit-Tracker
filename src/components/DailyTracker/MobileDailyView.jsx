@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, Flame, Plus, Zap, CheckCircle2 } from 'lucide-react';
+import { Check, Flame, Plus, CheckCircle2 } from 'lucide-react';
 import { HabitIcon } from '../Common/HabitIcon';
 
 export function MobileDailyView({
@@ -10,8 +10,7 @@ export function MobileDailyView({
   selectedYear,
   stats,
   onToggleDay,
-  onOpenAddModal,
-  onQuickFillToday
+  onOpenAddModal
 }) {
   const [filterMode, setFilterMode] = useState('ALL'); // 'ALL' | 'PENDING' | 'DONE'
 
@@ -180,19 +179,10 @@ export function MobileDailyView({
 
       {/* Bottom Quick Action Bar on Mobile */}
       <div className="mobile-quick-actions">
-        {doneCount < totalCount && (
-          <button
-            onClick={onQuickFillToday}
-            className="mobile-action-btn primary-action"
-          >
-            <Zap size={16} />
-            <span>Check All for Today</span>
-          </button>
-        )}
-
         <button
           onClick={onOpenAddModal}
           className="mobile-action-btn secondary-action"
+          style={{ width: '100%', justifyContent: 'center' }}
         >
           <Plus size={16} />
           <span>New Habit</span>
