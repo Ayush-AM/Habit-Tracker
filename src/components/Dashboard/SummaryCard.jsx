@@ -9,12 +9,12 @@ export function SummaryCard({ completed, goal }) {
   const strokeDashoffset = circumference - (percent / 100) * circumference;
 
   let badgeIcon = <Compass size={13} />;
-  let badgeText = "Ready to Conquer Winter Arc";
+  let badgeText = "Ready to Build Great Habits";
   let badgeClass = "badge-neutral";
 
   if (percent >= 80) {
     badgeIcon = <Flame size={13} className="text-amber-500" />;
-    badgeText = "Exceptional • Winter Arc Elite";
+    badgeText = "Exceptional • Top Performer";
     badgeClass = "badge-elite";
   } else if (percent >= 50) {
     badgeIcon = <Zap size={13} className="text-emerald-500" />;

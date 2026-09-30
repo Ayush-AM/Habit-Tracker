@@ -58,7 +58,7 @@ export function App() {
   // View Mode: 'grid' (Matrix Spreadsheet) or 'daily' (Mobile Daily Focus)
   const [viewMode, setViewMode] = useState(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('winter_arc_view_mode');
+      const saved = localStorage.getItem('ht_view_mode');
       if (saved) return saved;
       return window.innerWidth <= 768 ? 'daily' : 'grid';
     }
@@ -68,7 +68,7 @@ export function App() {
   const handleSetViewMode = (mode) => {
     setViewMode(mode);
     try {
-      localStorage.setItem('winter_arc_view_mode', mode);
+      localStorage.setItem('ht_view_mode', mode);
     } catch (e) {
       // ignore
     }
@@ -102,7 +102,7 @@ export function App() {
 
       if (totalCompletedOnDay === habits.length && habits.length > 0) {
         triggerCelebration();
-        addToast(`100% Perfect Day ${day}! Winter Arc discipline locked in.`);
+        addToast(`100% Perfect Day ${day}! All habits completed.`);
       }
     }
   };
@@ -139,9 +139,9 @@ export function App() {
   };
 
   const handleRestoreDefaults = () => {
-    if (window.confirm("Reset habits back to the 12 default Winter Arc habits from your notebook?")) {
+    if (window.confirm("Reset habits back to the 12 default starter habits?")) {
       restoreDefaults();
-      addToast("Winter Arc notebook habits restored & auto-synced.");
+      addToast("Default habits restored & auto-synced.");
     }
   };
 
@@ -240,7 +240,7 @@ export function App() {
           />
         )}
 
-        {/* Daily Reflection & Winter Arc Timelog */}
+        {/* Daily Reflection & Timelog */}
         <section className="bottom-extra-section">
           <WinterArcLog
             dailyMetrics={dailyMetrics}
@@ -256,7 +256,7 @@ export function App() {
       <footer className="app-footer">
         <div className="footer-left">
           <Cloud size={14} className="text-emerald-500" />
-          <span>Winter Arc • Live Auto-Synchronized • Localhost & Vercel</span>
+          <span>Habit Tracker • Live Auto-Synchronized • Localhost & Vercel</span>
         </div>
         <div className="footer-right">
           <button onClick={handleRestoreDefaults} className="footer-link-btn">

@@ -60,20 +60,16 @@ export function Header({
     setSelectedMonth(now.getMonth());
   };
 
-  // Calculate day in Winter Arc (Oct 1 to Dec 31 = 92 days)
+  // Calculate day count from the start of the current year
   const now = new Date();
-  const arcStart = new Date(2026, 9, 1); // Oct 1
-  const arcEnd = new Date(2026, 11, 31); // Dec 31
-  const totalArcDays = 92;
-  const diffMs = now - arcStart;
-  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-  const arcDay = diffDays < 1 ? 0 : Math.min(diffDays, totalArcDays);
-  const arcStarted = now >= arcStart;
-  const arcEnded = now > arcEnd;
+  const yearStart = new Date(now.getFullYear(), 0, 1);
+  const diffMs = now - yearStart;
+  const dayOfYear = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  const totalDaysInYear = ((now.getFullYear() % 4 === 0) ? 366 : 365);
 
   return (
     <header className="app-header">
-      {/* Brand & Winter Arc Badge */}
+      {/* Brand & Streak Badge */}
       <div className="header-left">
         <div className="logo-badge">
           <div className="logo-icon-wrap">
@@ -81,14 +77,14 @@ export function Header({
           </div>
           <div className="logo-text">
             <div className="logo-title-row">
-              <h1>WINTER ARC</h1>
+              <h1>HABIT TRACKER</h1>
             </div>
-            <span className="sub-logo">OCT 1 → DEC 31 • HABIT TRACKER</span>
+            <span className="sub-logo">DAILY DISCIPLINE & ANALYTICS</span>
           </div>
         </div>
         <div className="winter-arc-tag">
           <span className="pulse-dot"></span>
-          <span>{arcStarted ? (arcEnded ? `COMPLETED • ${totalArcDays} DAYS` : `DAY ${arcDay} / ${totalArcDays}`) : 'STARTS OCT 1'}</span>
+          <span>DAY {dayOfYear} / {totalDaysInYear}</span>
         </div>
       </div>
 

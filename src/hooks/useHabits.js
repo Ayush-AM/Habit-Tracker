@@ -9,13 +9,9 @@ import {
 
 export function useHabits() {
   const [currentDate] = useState(new Date());
-  const [selectedYear, setSelectedYear] = useState(2026);
-  // Default to October if we're before the arc start
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(() => {
-    const now = new Date();
-    const month = now.getMonth();
-    if (now.getFullYear() === 2026 && month < 9) return 9;
-    return month;
+    return new Date().getMonth();
   });
 
   // Cloud sync status: 'synced' | 'syncing' | 'offline'
@@ -27,8 +23,8 @@ export function useHabits() {
   const lastLocalWriteTimeRef = useRef(0);
 
   // Month check and metric keys
-  const checksKey = `winter_arc_checks_${selectedYear}_${selectedMonth}`;
-  const metricsKey = `winter_arc_metrics_${selectedYear}_${selectedMonth}`;
+  const checksKey = `ht_checks_${selectedYear}_${selectedMonth}`;
+  const metricsKey = `ht_metrics_${selectedYear}_${selectedMonth}`;
 
   // Legacy emoji migration map
   const emojiToProIcon = {
@@ -55,7 +51,7 @@ export function useHabits() {
 
   // Habits list (Instant load from localStorage, then hydrate from cloud)
   const [habits, setHabits] = useState(() => {
-    const saved = localStorage.getItem('winter_arc_habits_list');
+    const saved = localStorage.getItem('ht_habits_list');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -74,7 +70,7 @@ export function useHabits() {
 
   // Checkmarks dictionary: { [habitId]: { [day]: boolean } }
   const [checkData, setCheckData] = useState(() => {
-    const key = `winter_arc_checks_${new Date().getFullYear()}_${new Date().getMonth()}`;
+    const key = `ht_checks_${new Date().getFullYear()}_${new Date().getMonth()}`;
     const saved = localStorage.getItem(key);
     if (saved) {
       try {
@@ -88,7 +84,7 @@ export function useHabits() {
 
   // Daily extra metrics: steps, water, deep work, notes
   const [dailyMetrics, setDailyMetrics] = useState(() => {
-    const key = `winter_arc_metrics_${new Date().getFullYear()}_${new Date().getMonth()}`;
+    const key = `ht_metrics_${new Date().getFullYear()}_${new Date().getMonth()}`;
     const saved = localStorage.getItem(key);
     if (saved) {
       try {
@@ -116,11 +112,11 @@ export function useHabits() {
       // Sync habits
       if (allCloud.habits && Array.isArray(allCloud.habits.data) && allCloud.habits.data.length > 0) {
         const cloudHabitsStr = JSON.stringify(allCloud.habits.data);
-        const localHabitsStr = localStorage.getItem('winter_arc_habits_list');
+        const localHabitsStr = localStorage.getItem('ht_habits_list');
         if (cloudHabitsStr !== localHabitsStr) {
           isSyncingFromCloudRef.current = true;
           setHabits(allCloud.habits.data);
-          localStorage.setItem('winter_arc_habits_list', cloudHabitsStr);
+          localStorage.setItem('ht_habits_list', cloudHabitsStr);
           setTimeout(() => { isSyncingFromCloudRef.current = false; }, 100);
         }
       } else if (habits && habits.length > 0) {
@@ -190,7 +186,7 @@ export function useHabits() {
       if (key === 'habits' && Array.isArray(data)) {
         isSyncingFromCloudRef.current = true;
         setHabits(data);
-        localStorage.setItem('winter_arc_habits_list', JSON.stringify(data));
+        localStorage.setItem('ht_habits_list', JSON.stringify(data));
         setSyncStatus('synced');
         setLastSynced(new Date());
         setTimeout(() => { isSyncingFromCloudRef.current = false; }, 100);
@@ -261,7 +257,7 @@ export function useHabits() {
   const persistHabits = useCallback(async (newHabits) => {
     lastLocalWriteTimeRef.current = Date.now();
     setHabits(newHabits);
-    localStorage.setItem('winter_arc_habits_list', JSON.stringify(newHabits));
+    localStorage.setItem('ht_habits_list', JSON.stringify(newHabits));
 
     setSyncStatus('syncing');
     const success = await saveCloudData('habits', newHabits);
@@ -486,7 +482,7 @@ export function useHabits() {
 
   const exportCsv = useCallback(() => {
     const monthStr = MONTH_NAMES[selectedMonth];
-    let csv = `WINTER ARC HABIT TRACKER - ${monthStr} ${selectedYear}\n\n`;
+    let csv = `HABIT TRACKER - ${monthStr} ${selectedYear}\n\n`;
 
     const headers = ["Habit", "Category", "Month Goal", "Completed", "Progress %"];
     for (let d = 1; d <= daysInMonth; d++) {
@@ -517,7 +513,7 @@ export function useHabits() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `Winter_Arc_${monthStr}_${selectedYear}_Habits.csv`);
+    link.setAttribute("download", `HabitTracker_${monthStr}_${selectedYear}_Habits.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -525,8 +521,8 @@ export function useHabits() {
 
   const exportJson = useCallback(() => {
     const data = {
-      version: "2.2-auto-synced",
-      user: "Ayush",
+      version: "1.0-auto-synced",
+      user: "Friend",
       habits,
       checks: checkData,
       metrics: dailyMetrics,
@@ -538,7 +534,7 @@ export function useHabits() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `Winter_Arc_Backup_${Date.now()}.json`);
+    link.setAttribute("download", `HabitTracker_Backup_${Date.now()}.json`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

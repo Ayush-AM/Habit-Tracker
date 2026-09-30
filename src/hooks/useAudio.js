@@ -2,14 +2,14 @@ import { useState, useEffect, useRef } from 'react';
 
 export function useAudio() {
   const [soundEnabled, setSoundEnabled] = useState(() => {
-    const saved = localStorage.getItem('winter_arc_sound');
+    const saved = localStorage.getItem('ht_sound');
     return saved !== null ? JSON.parse(saved) : true;
   });
 
   const audioCtxRef = useRef(null);
 
   useEffect(() => {
-    localStorage.setItem('winter_arc_sound', JSON.stringify(soundEnabled));
+    localStorage.setItem('ht_sound', JSON.stringify(soundEnabled));
   }, [soundEnabled]);
 
   const initAudio = () => {

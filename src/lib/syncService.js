@@ -1,12 +1,14 @@
 import { supabase } from './supabase';
 
+const TABLE = 'habit_tracker_store';
+
 /**
  * Fetch a specific data key from Supabase cloud store.
  */
 export async function fetchCloudData(key) {
   try {
     const { data, error } = await supabase
-      .from('winter_arc_store')
+      .from(TABLE)
       .select('data, updated_at')
       .eq('key', key)
       .maybeSingle();
@@ -28,7 +30,7 @@ export async function fetchCloudData(key) {
 export async function fetchAllCloudData() {
   try {
     const { data, error } = await supabase
-      .from('winter_arc_store')
+      .from(TABLE)
       .select('key, data, updated_at');
 
     if (error) {
@@ -56,7 +58,7 @@ export async function fetchAllCloudData() {
 export async function saveCloudData(key, value) {
   try {
     const { error } = await supabase
-      .from('winter_arc_store')
+      .from(TABLE)
       .upsert({
         key,
         data: value,
@@ -75,16 +77,16 @@ export async function saveCloudData(key, value) {
 }
 
 /**
- * Subscribe to real-time changes on the winter_arc_store table.
+ * Subscribe to real-time changes on the habit_tracker_store table.
  * Automatically notifies callback when changes occur on localhost, Vercel, or any device.
  */
 export function subscribeToCloudChanges(onUpdate) {
   try {
     const channel = supabase
-      .channel('winter_arc_realtime_sync')
+      .channel('habit_tracker_realtime_sync')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'winter_arc_store' },
+        { event: '*', schema: 'public', table: TABLE },
         (payload) => {
           if (payload.new && payload.new.key && payload.new.data) {
             onUpdate({

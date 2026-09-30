@@ -68,7 +68,7 @@ export function HabitModal({
             <div>
               <h3>{habitToEdit ? 'Edit Habit' : 'Add New Habit'}</h3>
               <span className="modal-header-sub">
-                {habitToEdit ? `Updating "${habitToEdit.name}"` : 'Add to your Winter Arc discipline'}
+                {habitToEdit ? `Updating "${habitToEdit.name}"` : 'Add a new habit to track'}
               </span>
             </div>
           </div>
