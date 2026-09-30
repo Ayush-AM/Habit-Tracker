@@ -23,19 +23,22 @@ export function HabitRow({
       {/* Habit Title & Streak */}
       <td className="td-habit-name sticky-col sticky-col-0">
         <div className="habit-title-wrap">
-          <div className="habit-name-left">
+          <div 
+            className="habit-name-left"
+            onClick={() => onEditHabit(habit)}
+            title={`Click to edit ${habit.name}`}
+          >
             <span
               className="habit-icon-pill"
               style={{
                 color: habit.color || 'var(--accent-primary)',
                 backgroundColor: habit.color ? `${habit.color}18` : 'var(--accent-primary-light)'
               }}
-              title={habit.name}
             >
               <HabitIcon name={habit.icon} size={15} />
             </span>
             <div className="habit-name-block">
-              <span className="habit-name-text">{habit.name}</span>
+              <span className="habit-name-text" title={habit.name}>{habit.name}</span>
               <div className="habit-meta-mobile">
                 <span className="mobile-progress-pill">{completedCount}/{goal}</span>
                 {streak > 0 && (
@@ -53,20 +56,30 @@ export function HabitRow({
               </span>
             )}
           </div>
-          <div className="habit-row-actions">
+          <div className="habit-row-actions" onClick={(e) => e.stopPropagation()}>
             <button
-              className="row-btn"
-              onClick={() => onEditHabit(habit)}
-              title="Edit habit"
+              type="button"
+              className="row-btn edit-row-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEditHabit(habit);
+              }}
+              title={`Edit ${habit.name}`}
+              aria-label={`Edit ${habit.name}`}
             >
-              <Edit3 size={13} />
+              <Edit3 size={12} />
             </button>
             <button
+              type="button"
               className="row-btn delete-btn"
-              onClick={() => onDeleteHabit(habit.id)}
-              title="Delete habit"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeleteHabit(habit.id);
+              }}
+              title={`Delete ${habit.name}`}
+              aria-label={`Delete ${habit.name}`}
             >
-              <Trash2 size={13} />
+              <Trash2 size={12} />
             </button>
           </div>
         </div>

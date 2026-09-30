@@ -1397,13 +1397,22 @@ body.theme-frost .th-progress, body.theme-midnight .th-progress {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  gap: 6px;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .habit-name-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  cursor: pointer;
 }
 
 .habit-icon {
@@ -1414,8 +1423,8 @@ body.theme-frost .th-progress, body.theme-midnight .th-progress {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 7px;
   flex-shrink: 0;
   border: 1px solid var(--border-color);
@@ -1427,6 +1436,21 @@ body.theme-frost .th-progress, body.theme-midnight .th-progress {
   flex-direction: column;
   align-items: flex-start;
   gap: 1px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.habit-name-text {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  width: 100%;
+  max-width: 100%;
 }
 
 .habit-meta-mobile {
@@ -1441,11 +1465,13 @@ body.theme-frost .th-progress, body.theme-midnight .th-progress {
   background: var(--accent-primary-light);
   padding: 1px 5px;
   border-radius: 4px;
+  white-space: nowrap;
 }
 
 .compact-streak {
   padding: 1px 5px !important;
   font-size: 10px !important;
+  white-space: nowrap;
 }
 
 .desktop-streak {
@@ -1462,6 +1488,7 @@ body.theme-frost .th-progress, body.theme-midnight .th-progress {
   background: rgba(234, 88, 12, 0.12);
   padding: 2px 6px;
   border-radius: 999px;
+  flex-shrink: 0;
 }
 
 .streak-icon {
@@ -1470,7 +1497,10 @@ body.theme-frost .th-progress, body.theme-midnight .th-progress {
 
 .habit-row-actions {
   display: flex;
-  gap: 4px;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+  margin-left: auto;
   opacity: 0;
   transition: opacity 0.15s;
 }
@@ -1480,15 +1510,31 @@ body.theme-frost .th-progress, body.theme-midnight .th-progress {
 }
 
 .row-btn {
-  background: none;
-  border: none;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   cursor: pointer;
-  padding: 3px 5px;
-  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 5px;
   color: var(--text-muted);
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.row-btn:hover {
+  color: var(--accent-primary);
+  background: var(--accent-primary-light);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.row-btn.delete-btn:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
 }
 
 .row-btn:hover {
@@ -2778,10 +2824,13 @@ body.theme-frost .th-progress, body.theme-midnight .th-progress {
      Hide redundant columns on mobile so days 1..31 are immediately visible and scrollable next to habit name! */
   .sticky-col-0 {
     left: 0 !important;
-    width: 140px !important;
-    min-width: 140px !important;
-    max-width: 140px !important;
-    z-index: 3 !important;
+    width: 175px !important;
+    min-width: 175px !important;
+    max-width: 175px !important;
+    padding: 6px 8px !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    z-index: 5 !important;
   }
 
   .col-category,
@@ -2918,16 +2967,20 @@ body.theme-frost .th-progress, body.theme-midnight .th-progress {
   /* Habit Table Row Actions on Touch/Mobile Screens */
   .habit-row-actions {
     opacity: 1 !important;
-    display: flex !important;
+    display: inline-flex !important;
+    flex-shrink: 0 !important;
+    gap: 3px !important;
+    margin-left: auto !important;
   }
 
   .row-btn {
-    width: 32px !important;
-    height: 32px !important;
-    padding: 6px !important;
-    border-radius: 6px !important;
+    width: 24px !important;
+    height: 24px !important;
+    padding: 0 !important;
+    border-radius: 5px !important;
     background: var(--bg-app) !important;
     border: 1px solid var(--border-color) !important;
+    flex-shrink: 0 !important;
   }
 }
 
@@ -2949,17 +3002,27 @@ body.theme-frost .th-progress, body.theme-midnight .th-progress {
   }
 
   .sticky-col-0 {
-    width: 125px !important;
-    min-width: 125px !important;
-    max-width: 125px !important;
+    width: 155px !important;
+    min-width: 155px !important;
+    max-width: 155px !important;
+    padding: 6px 6px !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    z-index: 5 !important;
   }
 
   .habit-name-text {
     font-size: 12px;
-    max-width: 80px;
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    display: block;
+  }
+
+  .row-btn {
+    width: 22px !important;
+    height: 22px !important;
   }
 
   .pro-icon-picker-grid {
