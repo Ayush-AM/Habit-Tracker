@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Snowflake, 
   ChevronLeft, 
@@ -12,7 +12,8 @@ import {
   Cloud,
   RefreshCw,
   Check,
-  X
+  X,
+  Smartphone
 } from 'lucide-react';
 import { MONTH_NAMES } from '../types/habit';
 import { HabitIcon } from './Common/HabitIcon';
@@ -35,6 +36,28 @@ export function Header({
   onSyncNow
 }) {
   const [showThemeMenu, setShowThemeMenu] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+
+  useEffect(() => {
+    const handleBeforeInstall = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+  }, []);
+
+  const handleInstallApp = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setDeferredPrompt(null);
+      }
+    } else {
+      alert('To install on iOS/Safari: Tap Share button ⎋ -> "Add to Home Screen".\nOn Android/Chrome: Tap 3 dots ⋮ -> "Install app".');
+    }
+  };
 
   const handlePrevMonth = () => {
     if (selectedMonth === 0) {
@@ -223,6 +246,17 @@ export function Header({
             </>
           )}
         </div>
+
+        {/* Install App / PWA Button */}
+        <button 
+          onClick={handleInstallApp} 
+          className="action-btn secondary-btn header-install-btn" 
+          title="Install as Mobile / Desktop App"
+          style={{ borderColor: 'rgba(59, 130, 246, 0.4)', color: '#60a5fa' }}
+        >
+          <Smartphone size={15} />
+          <span>Install App</span>
+        </button>
 
         {/* Export CSV */}
         <button 
