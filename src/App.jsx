@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useHabits } from './hooks/useHabits';
 import { useAudio } from './hooks/useAudio';
 import { useTheme } from './hooks/useTheme';
@@ -14,6 +14,7 @@ import { HabitTable } from './components/HabitGrid/HabitTable';
 import { MobileDailyView } from './components/DailyTracker/MobileDailyView';
 import { WinterArcLog } from './components/DailyTracker/WinterArcLog';
 import { QuoteCard } from './components/DailyTracker/QuoteCard';
+import { MobileBottomNav } from './components/Common/MobileBottomNav';
 import { HabitModal } from './components/Modals/HabitModal';
 import { RotateCcw, Download, Upload, Cloud } from 'lucide-react';
 
@@ -55,24 +56,51 @@ export function App() {
   const { soundEnabled, toggleSound, playCheckSound } = useAudio();
   const { theme, setTheme, currentThemeObj, themes } = useTheme();
 
-  // View Mode: 'grid' (Matrix Spreadsheet) or 'daily' (Mobile Daily Focus)
-  const [viewMode, setViewMode] = useState(() => {
+  // Responsive screen detection
+  const [isMobile, setIsMobile] = useState(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('ht_view_mode');
-      if (saved) return saved;
-      return window.innerWidth <= 768 ? 'daily' : 'grid';
+      return window.innerWidth <= 768;
     }
-    return 'grid';
+    return false;
   });
 
-  const handleSetViewMode = (mode) => {
-    setViewMode(mode);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Screen Tab State: 'today' | 'matrix' | 'stats' | 'log'
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('winter_arc_active_tab') || localStorage.getItem('ht_active_tab');
+      if (saved) return saved;
+      return window.innerWidth <= 768 ? 'today' : 'matrix';
+    }
+    return 'today';
+  });
+
+  const handleSetActiveTab = (tab) => {
+    setActiveTab(tab);
     try {
-      localStorage.setItem('ht_view_mode', mode);
+      localStorage.setItem('winter_arc_active_tab', tab);
+      localStorage.setItem('ht_active_tab', tab);
     } catch (e) {
       // ignore
     }
   };
+
+  // Today Completion Stats for bottom navigation pill
+  const todayStats = useMemo(() => {
+    const day = todayDayNumber || 1;
+    let done = 0;
+    habits.forEach(h => {
+      if (checkData[h.id] && checkData[h.id][day]) done++;
+    });
+    return { done, total: habits.length };
+  }, [habits, checkData, todayDayNumber]);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -102,7 +130,7 @@ export function App() {
 
       if (totalCompletedOnDay === habits.length && habits.length > 0) {
         triggerCelebration();
-        addToast(`100% Perfect Day ${day}! All habits completed.`);
+        addToast(`100% Perfect Day ${day}! Winter Arc discipline locked in.`);
       }
     }
   };
@@ -139,9 +167,9 @@ export function App() {
   };
 
   const handleRestoreDefaults = () => {
-    if (window.confirm("Reset habits back to the 12 default starter habits?")) {
+    if (window.confirm("Reset habits back to the 12 default Winter Arc habits from your notebook?")) {
       restoreDefaults();
-      addToast("Default habits restored & auto-synced.");
+      addToast("Winter Arc notebook habits restored & auto-synced.");
     }
   };
 
@@ -177,80 +205,174 @@ export function App() {
 
       {/* Main Content */}
       <main className="main-content">
-        {/* Top Analytics Dashboard */}
-        <section className="dashboard-section">
-          <SummaryCard
-            completed={stats.totalCompleted}
-            goal={stats.totalGoal}
-          />
-          <WeeklyDonuts weeklyStats={stats.weeklyStats} />
-        </section>
+        {/* On Mobile: Render ONLY the selected screen tab with zero clutter */}
+        {isMobile ? (
+          <>
+            {activeTab === 'today' && (
+              <>
+                <MobileDailyView
+                  habits={habits}
+                  checkData={checkData}
+                  todayDayNumber={todayDayNumber}
+                  selectedMonth={selectedMonth}
+                  selectedYear={selectedYear}
+                  stats={stats}
+                  onToggleDay={handleToggleDay}
+                  onOpenAddModal={handleOpenAddModal}
+                  onEditHabit={handleOpenEditModal}
+                  onDeleteHabit={handleDeleteHabit}
+                  onViewAnalytics={() => handleSetActiveTab('stats')}
+                />
+                <section className="bottom-extra-section" style={{ marginTop: '16px' }}>
+                  <QuoteCard />
+                </section>
+              </>
+            )}
 
-        {/* Second Row Charts: Daily Bar Chart & Category Progress */}
-        <section className="charts-row-section">
-          <DailyBarChart
-            daysInMonth={daysInMonth}
-            dailyCounts={stats.dailyCounts}
-            maxHabitCount={habits.length}
-            todayDay={todayDayNumber}
-          />
-          <CategoryProgress categoryStats={stats.categoryStats} />
-        </section>
+            {activeTab === 'matrix' && (
+              <>
+                <TableToolbar
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  categoryFilter={categoryFilter}
+                  setCategoryFilter={setCategoryFilter}
+                  viewMode="grid"
+                  setViewMode={(m) => handleSetActiveTab(m === 'daily' ? 'today' : 'matrix')}
+                />
+                <HabitTable
+                  habits={habits}
+                  checkData={checkData}
+                  daysInMonth={daysInMonth}
+                  todayDayNumber={todayDayNumber}
+                  selectedYear={selectedYear}
+                  selectedMonth={selectedMonth}
+                  stats={stats}
+                  searchQuery={searchQuery}
+                  categoryFilter={categoryFilter}
+                  onToggleDay={handleToggleDay}
+                  onUpdateGoal={updateHabitGoal}
+                  onEditHabit={handleOpenEditModal}
+                  onDeleteHabit={handleDeleteHabit}
+                  onOpenAddModal={handleOpenAddModal}
+                />
+              </>
+            )}
 
-        {/* Search & Filter Toolbar with View Mode Toggle */}
-        <TableToolbar
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          categoryFilter={categoryFilter}
-          setCategoryFilter={setCategoryFilter}
-          viewMode={viewMode}
-          setViewMode={handleSetViewMode}
-        />
+            {activeTab === 'stats' && (
+              <>
+                <section className="dashboard-section">
+                  <SummaryCard
+                    completed={stats.totalCompleted}
+                    goal={stats.totalGoal}
+                  />
+                  <WeeklyDonuts weeklyStats={stats.weeklyStats} />
+                </section>
+                <section className="charts-row-section">
+                  <DailyBarChart
+                    daysInMonth={daysInMonth}
+                    dailyCounts={stats.dailyCounts}
+                    maxHabitCount={habits.length}
+                    todayDay={todayDayNumber}
+                  />
+                  <CategoryProgress categoryStats={stats.categoryStats} />
+                </section>
+              </>
+            )}
 
-        {/* View Mode Switching: Spreadsheet Matrix or Mobile Daily Focus */}
-        {viewMode === 'daily' ? (
-          <MobileDailyView
-            habits={habits}
-            checkData={checkData}
-            todayDayNumber={todayDayNumber}
-            selectedMonth={selectedMonth}
-            selectedYear={selectedYear}
-            stats={stats}
-            onToggleDay={handleToggleDay}
-            onOpenAddModal={handleOpenAddModal}
-            onEditHabit={handleOpenEditModal}
-            onDeleteHabit={handleDeleteHabit}
-          />
+            {activeTab === 'log' && (
+              <section className="bottom-extra-section">
+                <WinterArcLog
+                  dailyMetrics={dailyMetrics}
+                  persistDailyMetrics={persistDailyMetrics}
+                  todayDayNumber={todayDayNumber}
+                  onNotify={addToast}
+                />
+                <QuoteCard />
+              </section>
+            )}
+          </>
         ) : (
-          <HabitTable
-            habits={habits}
-            checkData={checkData}
-            daysInMonth={daysInMonth}
-            todayDayNumber={todayDayNumber}
-            selectedYear={selectedYear}
-            selectedMonth={selectedMonth}
-            stats={stats}
-            searchQuery={searchQuery}
-            categoryFilter={categoryFilter}
-            onToggleDay={handleToggleDay}
-            onUpdateGoal={updateHabitGoal}
-            onEditHabit={handleOpenEditModal}
-            onDeleteHabit={handleDeleteHabit}
-            onOpenAddModal={handleOpenAddModal}
-          />
-        )}
+          /* On Desktop: Full Rich Dashboard with Switcher */
+          <>
+            <section className="dashboard-section">
+              <SummaryCard
+                completed={stats.totalCompleted}
+                goal={stats.totalGoal}
+              />
+              <WeeklyDonuts weeklyStats={stats.weeklyStats} />
+            </section>
 
-        {/* Daily Reflection & Timelog */}
-        <section className="bottom-extra-section">
-          <WinterArcLog
-            dailyMetrics={dailyMetrics}
-            persistDailyMetrics={persistDailyMetrics}
-            todayDayNumber={todayDayNumber}
-            onNotify={addToast}
-          />
-          <QuoteCard />
-        </section>
+            <section className="charts-row-section">
+              <DailyBarChart
+                daysInMonth={daysInMonth}
+                dailyCounts={stats.dailyCounts}
+                maxHabitCount={habits.length}
+                todayDay={todayDayNumber}
+              />
+              <CategoryProgress categoryStats={stats.categoryStats} />
+            </section>
+
+            <TableToolbar
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              categoryFilter={categoryFilter}
+              setCategoryFilter={setCategoryFilter}
+              viewMode={activeTab === 'today' ? 'daily' : 'grid'}
+              setViewMode={(m) => handleSetActiveTab(m === 'daily' ? 'today' : 'matrix')}
+            />
+
+            {activeTab === 'today' ? (
+              <MobileDailyView
+                habits={habits}
+                checkData={checkData}
+                todayDayNumber={todayDayNumber}
+                selectedMonth={selectedMonth}
+                selectedYear={selectedYear}
+                stats={stats}
+                onToggleDay={handleToggleDay}
+                onOpenAddModal={handleOpenAddModal}
+                onEditHabit={handleOpenEditModal}
+                onDeleteHabit={handleDeleteHabit}
+                onViewAnalytics={() => handleSetActiveTab('stats')}
+              />
+            ) : (
+              <HabitTable
+                habits={habits}
+                checkData={checkData}
+                daysInMonth={daysInMonth}
+                todayDayNumber={todayDayNumber}
+                selectedYear={selectedYear}
+                selectedMonth={selectedMonth}
+                stats={stats}
+                searchQuery={searchQuery}
+                categoryFilter={categoryFilter}
+                onToggleDay={handleToggleDay}
+                onUpdateGoal={updateHabitGoal}
+                onEditHabit={handleOpenEditModal}
+                onDeleteHabit={handleDeleteHabit}
+                onOpenAddModal={handleOpenAddModal}
+              />
+            )}
+
+            <section className="bottom-extra-section">
+              <WinterArcLog
+                dailyMetrics={dailyMetrics}
+                persistDailyMetrics={persistDailyMetrics}
+                todayDayNumber={todayDayNumber}
+                onNotify={addToast}
+              />
+              <QuoteCard />
+            </section>
+          </>
+        )}
       </main>
+
+      {/* Mobile Bottom Navigation Bar (Active on Phones & Narrow Screens) */}
+      <MobileBottomNav
+        activeTab={activeTab}
+        setActiveTab={handleSetActiveTab}
+        todayStats={todayStats}
+      />
 
       {/* Footer */}
       <footer className="app-footer">

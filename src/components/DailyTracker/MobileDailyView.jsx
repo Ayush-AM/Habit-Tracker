@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, Flame, Plus, CheckCircle2, Edit3, Trash2 } from 'lucide-react';
+import { Check, Flame, Plus, CheckCircle2, Edit3, Trash2, BarChart3 } from 'lucide-react';
 import { HabitIcon } from '../Common/HabitIcon';
 
 export function MobileDailyView({
@@ -12,7 +12,8 @@ export function MobileDailyView({
   onToggleDay,
   onOpenAddModal,
   onEditHabit,
-  onDeleteHabit
+  onDeleteHabit,
+  onViewAnalytics
 }) {
   const [filterMode, setFilterMode] = useState('ALL'); // 'ALL' | 'PENDING' | 'DONE'
 
@@ -64,10 +65,18 @@ export function MobileDailyView({
           </h3>
         </div>
 
-        <div className="mobile-today-stat-pill">
-          <span className="stat-pill-numbers">{doneCount}/{totalCount}</span>
-          <span className="stat-pill-label">{todayPercent}% Done</span>
-        </div>
+        <button
+          type="button"
+          onClick={onViewAnalytics}
+          className="mobile-today-stat-pill clickable"
+          title="Open Full Analytics Dashboard"
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <span className="stat-pill-numbers">{doneCount}/{totalCount}</span>
+            <BarChart3 size={13} style={{ color: 'var(--accent-primary)' }} />
+          </div>
+          <span className="stat-pill-label">{todayPercent}% • Stats ↗</span>
+        </button>
       </div>
 
       {/* Daily Progress Bar */}
